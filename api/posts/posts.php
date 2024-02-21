@@ -2,6 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 $dotenv = Dotenv\Dotenv::createImmutable("../../");
 $dotenv->load();
 
@@ -22,9 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $page = sanitizeInput($_GET['page'])*20;
+    $page = (intval(sanitizeInput($_GET['page']))-1)*20;
     $posts = getPosts($page);
     echo json_encode($posts);
+    exit;
 }
 
 function getPosts($page) {
@@ -35,8 +39,9 @@ function getPosts($page) {
     }
 
     $stmt = $conn->prepare("SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET ?;");
-    $stmt->bind_param("n", $page);
+    $stmt->bind_param("i", $page);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $posts = $result->fetch_all(MYSQLI_ASSOC);
+    return $posts;
 }
