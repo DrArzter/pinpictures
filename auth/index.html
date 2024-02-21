@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body class="bg-gray-200">
+    <header class="flex flex-row justify-between bg-gray-900 py-4 px-4 sm:px-8 text-gray-100 rounded-b-2xl">
+        <div class="flex flex-row items-center">
+            <p class="sm:text-xl lg:text-2xl">PinPictures</p>
+        </div>
+    </header>
+
+<div id="loginForm">
+    <h2>Login</h2>
+    <form id="login">
+        <label for="username">Username:</label>
+        <input type="text" id="loginUsername" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="loginPassword" name="password" required>
+
+        <button type="button" onclick="login()">Login</button>
+    </form>
+    <p>Don't have an account? <a href="#" onclick="showRegistrationForm()">Register</a></p>
+</div>
+
+<div id="registrationForm" style="display: none;">
+    <h2>Registration</h2>
+    <form id="register">
+        <label for="username">Username:</label>
+        <input type="text" id="registerUsername" name="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="registerPassword" name="password" required>
+
+        <button type="button" onclick="register()">Register</button>
+    </form>
+    <p>Already have an account? <a href="#" onclick="showLoginForm()">Login</a></p>
+</div>
+
+<script>
+    function showLoginForm() {
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('registrationForm').style.display = 'none';
+    }
+
+    function showRegistrationForm() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registrationForm').style.display = 'block';
+    }
+
+    function login() {
+        // Perform login AJAX request here
+        console.log('Login clicked');
+    }
+
+    function register() {
+        // Perform registration AJAX request here
+        console.log('Register clicked');
+    }
+
+    // Show login form by default
+    showLoginForm();
+</script>
+
+</body>
+</html>
