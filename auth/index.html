@@ -16,39 +16,41 @@
         </div>
     </header>
 
-    <div class="" id="loginForm">
-        <h2>Login</h2>
-        <form id="login">
-            <label for="username">Username:</label>
-            <input type="text" id="loginUsername" name="username" required />
+    <div class="flex flex-row items-center justify-center sm:h-screen">
+        <div class="border-2 border-gray-800 bg-gray-300 rounded-2xl p-4" id="loginForm">
+            <h2></h2>
+            <form class="flex flex-col" id="login">
+                <label for="username">Username:</label>
+                <input type="text" class="rounded" id="loginUsername" name="username" required />
 
-            <label for="password">Password:</label>
-            <input type="password" id="loginPassword" name="password" required />
+                <label for="password">Password:</label>
+                <input type="password" class="rounded" id="loginPassword" name="password" required />
 
-            <button type="button" onclick="login()">Login</button>
-        </form>
-        <p>
-            Don't have an account?
-            <a href="#" onclick="showRegistrationForm()">Register</a>
-        </p>
+                <button class="hover:text-white transition duration-200 w-1/3 self-center rounded bg-gray-200 my-2 hover:bg-gray-800" type="button" onclick="login()">Login</button>
+            </form>
+            <p>
+                Don't have an account?
+                <a href="#" onclick="showRegistrationForm()">Register</a>
+            </p>
+        </div>
+
+        <div class="border-2 border-gray-800 bg-gray-300 rounded-2xl p-4" id="registrationForm" style="display: none">
+            <h2></h2>
+            <form class="flex flex-col" id="register">
+                <label for="username">Username:</label>
+                <input type="text" id="registerUsername" name="username" required />
+
+                <label for="password">Password:</label>
+                <input type="password" id="registerPassword" name="password" required />
+
+                <button class="hover:text-white transition duration-200 w-1/3 self-center rounded bg-gray-200 my-2 hover:bg-gray-800" type="button"
+                    onclick="register()">Register</button>
+            </form>
+            <p>
+                Already have an account? <a href="#" onclick="showLoginForm()">Login</a>
+            </p>
+        </div>
     </div>
-
-    <div id="registrationForm" style="display: none">
-        <h2>Registration</h2>
-        <form id="register">
-            <label for="username">Username:</label>
-            <input type="text" id="registerUsername" name="username" required />
-
-            <label for="password">Password:</label>
-            <input type="password" id="registerPassword" name="password" required />
-
-            <button type="button" onclick="register()">Register</button>
-        </form>
-        <p>
-            Already have an account? <a href="#" onclick="showLoginForm()">Login</a>
-        </p>
-    </div>
-
     <script>
         function showLoginForm() {
             document.getElementById("loginForm").style.display = "block";
@@ -73,6 +75,10 @@
         // Show login form by default
         showLoginForm();
     </script>
+
+    <footer>
+        <p class="text-center">&copy; 2024 PinPictures</p>
+    </footer>
 </body>
 
 </html>
