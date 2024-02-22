@@ -103,16 +103,21 @@
             $.ajax({
                 type: "POST",
                 url: "/api/user/auth.php",
-                data: {
+                contentType: "application/json",
+                data: JSON.stringify({
                     type: "login",
                     nickname: nickname,
                     password: password,
                     rememberMe: "yes"
-                },
+                }),
                 success: function (data) {
                     data = JSON.parse(data);
                     showNotification(data.message, data.status);
 
+                },
+                error: function (xhr, status, error) {
+                    data = JSON.parse(xhr.responseText);
+                    showNotification(data.message, "error");
                 }
             })
             console.log("Login clicked");
