@@ -49,7 +49,7 @@
             for (let i = 0; i < data.length; i++) {
                 postPlace = document.getElementById("Posts");
                 mainDiv = document.createElement("div");
-                mainDiv.setAttribute("class", "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-gradient-to-br from-gray-700/10 to-cyan-700/10 cursor-pointer");
+                mainDiv.setAttribute("class", "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-cyan-900/70 backdrop-blur-xl shadow-2xl cursor-pointer");
                 mainDiv.setAttribute("id", data[i].id);
                 mainDiv.setAttribute("onclick", "openPost()");
                 postPlace.appendChild(mainDiv);
