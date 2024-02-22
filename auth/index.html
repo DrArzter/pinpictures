@@ -48,8 +48,8 @@
             id="registrationForm" style="display: none">
             <p class="sm:text-xl text-center lg:text-2xl">Authorization</p>
             <form class="flex flex-col mt-6" id="register">
-                <label for="username">Username:</label>
-                <input type="text" id="registerUsername" class="rounded-xl bg-gray-300 p-1" name="username" required />
+                <label for="nickname">Username:</label>
+                <input type="text" id="registerNickname" class="rounded-xl bg-gray-300 p-1" name="nickname" required />
 
                 <label for="password">Password:</label>
                 <input type="password" class="rounded-xl bg-gray-300 p-1" id="registerPassword" name="password"
@@ -124,7 +124,26 @@
         }
 
         function register() {
-            // Perform registration AJAX request here
+            let nickname = document.getElementById("registerNickname").value;
+            let password = document.getElementById("registerPassword").value;
+            $.ajax({
+                type: "POST",
+                url: "/api/user/auth.php",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    type: "register",
+                    nickname: nickname,
+                    password: password,
+                }),
+                success: function (data) {
+                    data = JSON.parse(data);
+                    showNotification(data.message, data.status);
+                },
+                error: function (xhr, status, error) {
+                    data = JSON.parse(xhr.responseText);
+                    showNotification(data.message, data.status);                    
+                }
+            })
             console.log("Register clicked");
         }
 
