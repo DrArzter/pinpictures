@@ -113,7 +113,7 @@
                 success: function (data) {
                     data = JSON.parse(data);
                     showNotification(data.message, data.status);
-                    winwsow.location.href = "/";
+                    window.location.href = "/";
 
                 },
                 error: function (xhr, status, error) {
@@ -139,7 +139,7 @@
                 success: function (data) {
                     data = JSON.parse(data);
                     showNotification(data.message, data.status);
-                    winwsow.location.href = "/";
+                    window.location.href = "/";
                 },
                 error: function (xhr, status, error) {
                     data = JSON.parse(xhr.responseText);
