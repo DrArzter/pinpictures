@@ -10,6 +10,9 @@
 </head>
 
 <body class="bg-gradient-to-br from-gray-600 to-cyan-600 min-h-screen ">
+
+    <div id="notification-container" class="fixed top-0 right-0 mt-20 mr-4 text-white p-4 rounded-xl shadow-2xl hidden z-50" wfd-invisible="false"></div>
+
     <header class="flex flex-row justify-between bg-gray-900 py-4 px-4 sm:px-8 text-gray-100 rounded-b-2xl">
         <div class="flex flex-row items-center">
             <p class="cursor-pointer sm:text-xl lg:text-2xl" onclick="window.location.href = '/'">
@@ -19,15 +22,15 @@
     </header>
 
     <div class="flex flex-row items-center justify-center sm:h-screen">
-        <div class="bg-gray-700/20 text-slate-200 backdrop-blur-xl rounded-3xl shadow-2xl shadow-xl p-4 w-11/12 sm:w-6/12 md:w-3/12 mt-8 sm:mt-0"
+        <div class="bg-gray-700/20 text-slate-200 backdrop-blur-xl rounded-3xl shadow-2xl shadow-xl p-4 w-11/12 sm:w-6/12 lg:w-3/12 mt-8 sm:mt-0"
             id="loginForm">
             <p class="sm:text-xl text-center lg:text-2xl">Authorization</p>
             <form class="flex flex-col mt-6" id="login">
-                <label for="username" class="bold">Username:</label>
-                <input type="text" class="rounded-xl bg-gray-300 p-1" id="loginUsername" name="username" required />
+                <label for="nickname" class="bold">Nickname:</label>
+                <input type="text" class="rounded-xl bg-gray-300 p-1 text-gray-800" id="loginNickname" name="nickname" required />
 
                 <label for="password">Password:</label>
-                <input type="password" class="rounded-xl bg-gray-300 p-1" id="loginPassword" name="password" required />
+                <input type="password" class="rounded-xl bg-gray-300 p-1 text-gray-800" id="loginPassword" name="password" required />
 
                 <button
                     class="hover:text-black transition duration-200 w-1/3 self-center rounded bg-gray-800 my-2 hover:bg-gray-300"
@@ -75,8 +78,43 @@
             document.getElementById("registrationForm").style.display = "block";
         }
 
+        function showNotification(message, type) {
+            const notificationContainer = document.getElementById('notification-container');
+            notificationContainer.textContent = message;
+
+            notificationContainer.classList.remove('bg-green-500', 'bg-red-500');
+            
+            if (type === 'success') {
+                notificationContainer.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                notificationContainer.classList.add('bg-red-500');
+            }
+
+            notificationContainer.style.display = 'block';
+
+            setTimeout(() => {
+                notificationContainer.style.display = 'none';
+            }, 5000);
+        }
+
         function login() {
-            // Perform login AJAX request here
+            let nickname = document.getElementById("loginNickname").value;
+            let password = document.getElementById("loginPassword").value;
+            $.ajax({
+                type: "POST",
+                url: "/api/user/auth.php",
+                data: {
+                    type: "login",
+                    nickname: nickname,
+                    password: password,
+                    rememberMe: "yes"
+                },
+                success: function (data) {
+                    data = JSON.parse(data);
+                    showNotification(data.message, data.status);
+
+                }
+            })
             console.log("Login clicked");
         }
 
