@@ -23,7 +23,6 @@ function sanitizeInput($input)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dataInput = json_decode(file_get_contents('php://input'), true);
-    print_r($dataInput);
     $type = sanitizeInput($dataInput['type']);
     if ($type === 'login') {
         $nickname = sanitizeInput($dataInput['nickname']);
