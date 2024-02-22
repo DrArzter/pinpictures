@@ -52,19 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (strpbrk($nickname, $forbiddenChars) || strpbrk($password, $forbiddenChars)) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "notification" => "Nickname or password contains forbidden characters"]);
+            echo json_encode(["status" => "error", "message" => "Nickname or password contains forbidden characters"]);
             exit;
         }
     
         if (strlen($nickname) > 255 || strlen($nickname) < 3) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "notification" => "Nickname must be between 3 and 255 characters"]);
+            echo json_encode(["status" => "error", "message" => "Nickname must be between 3 and 255 characters"]);
             exit;
         }
     
         if (strlen($password) > 255 || strlen($password) < 6) {
             http_response_code(400);
-            echo json_encode(["status" => "error", "notification" => "Password must be between 6 and 255 characters"]);
+            echo json_encode(["status" => "error", "message" => "Password must be between 6 and 255 characters"]);
             exit;
         }
 
