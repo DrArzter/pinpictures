@@ -22,6 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $post = json_decode(file_get_contents('php://input'), true);
     $title = sanitizeInput($post['title']);
     $picture = sanitizeInput($post['picture']);
+    $status = createPost($title, $picture);
+    echo $status;
+    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -45,3 +48,21 @@ function getPosts($page) {
     $posts = $result->fetch_all(MYSQLI_ASSOC);
     return $posts;
 }
+
+function createPost($title, $picture) {
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    $stmt = $conn->prepare("INSERT INTO posts (title, picPath) VALUES (?, ?)");
+    $stmt->bind_param("ss", $title, $picture);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        return json_encode(["status" => "success", "message" => "Post created successfully"]);
+    } else {
+        return json_encode(["status" => "error", "message" => "Failed to create post"]);
+    }
+}
+
