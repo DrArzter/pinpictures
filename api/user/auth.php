@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = createToken($id, $authTime);
             setcookie('auth_token', $token, time() + $authTime, '/');
             echo json_encode(["status" => "success", "message" => "Authorization successful"]);
+            exit;
         } else {
             echo json_encode(["status" => "error", "message" => "Invalid login or password"]);
             http_response_code(401);
@@ -49,21 +50,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nickname = sanitizeInput($dataInput['nickname']);
         $password = sanitizeInput($dataInput['password']);
 
-        if (strpbrk($nickname, $forbiddenChars) || strpbrk($password, $forbiddenChars) || strpbrk($email, $forbiddenChars)) {
+        if (strpbrk($nickname, $forbiddenChars) || strpbrk($password, $forbiddenChars)) {
             http_response_code(400);
-            echo json_encode(array("status" => "error", "notification" => "Введённые данные содержат запрещенные символы", "type" => "error"));
+            echo json_encode(["status" => "error", "notification" => "Nickname or password contains forbidden characters", "type" => "error"]);
             exit;
         }
     
-        if ($nickname < 3 || $nickname > 16) {
+        if (strlen($nickname) > 255 || strlen($nickname) < 3) {
             http_response_code(400);
-            echo json_encode(array("status" => "error", "notification" => "Имя должно содержать больше 3-х и меньше 255-ти символов", "type" => "error"));
+            echo json_encode(["status" => "error", "notification" => "Nickname must be between 3 and 255 characters", "type" => "error"]);
             exit;
         }
     
-        if ($password < 6) {
+        if (strlen($password) > 255 || strlen($password) < 6) {
             http_response_code(400);
-            echo json_encode(array("status" => "error", "notification" => "Пароль должен быть больше 6 символов", "type" => "error"));
+            echo json_encode(["status" => "error", "notification" => "Password must be between 6 and 255 characters", "type" => "error"]);
             exit;
         }
 
@@ -74,8 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = createToken($data["id"], $authTime);
             setcookie('auth_token', $token, time() + $authTime, '/');
             echo json_encode(["status" => "success", "message" => "Registration successful"]);
+            exit;
         } else {
             echo json_encode(["status" => "error", "message" => $data["message"]]);
+            exit;
         }
     }
 }
