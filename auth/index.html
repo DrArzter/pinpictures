@@ -48,15 +48,15 @@
             id="registrationForm" style="display: none">
             <p class="sm:text-xl text-center lg:text-2xl">Authorization</p>
             <form class="flex flex-col mt-6" id="register">
-                <label for="nickname">Username:</label>
+                <label for="nickname">Nickname:</label>
                 <input type="text" id="registerNickname" class="rounded-xl bg-gray-300 p-1" name="nickname" required />
 
                 <label for="password">Password:</label>
-                <input type="password" class="rounded-xl bg-gray-300 p-1" id="registerPassword" name="password"
+                <input type="password" class="rounded-xl bg-gray-300 text-gray-800 p-1" id="registerPassword" name="password"
                     required />
 
                 <button
-                    class="hover:text-black transition duration-200 w-1/3 self-center rounded bg-gray-800 my-2 hover:bg-gray-300"
+                    class="hover:text-black transition text-gray-800 duration-200 w-1/3 self-center rounded bg-gray-800 my-2 hover:bg-gray-300"
                     type="button" onclick="register()">
                     Register
                 </button>
@@ -131,7 +131,7 @@
                 url: "/api/user/auth.php",
                 contentType: "application/json",
                 data: JSON.stringify({
-                    type: "register",
+                    type: "registration",
                     nickname: nickname,
                     password: password,
                 }),
