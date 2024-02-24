@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-gray-600 to-cyan-600 min-h-screen">
+
+    <div id="notification-container"
+        class="fixed top-0 right-0 mt-20 mr-4 text-white p-4 rounded-xl shadow-2xl hidden z-50" wfd-invisible="false">
+    </div>
+
+    <header class="flex flex-row justify-between bg-gray-900 py-4 px-4 sm:px-8 text-gray-100 rounded-b-2xl">
+        <div class="flex flex-row items-center">
+            <p class="cursor-pointer sm:text-xl lg:text-2xl" onclick="window.location.href = '/'">
+                PinPictures
+            </p>
+        </div>
+        <div>
+            <button onclick="logout()"
+                class="sm:text-lg lg:text-xl px-4 py-1 rounded-2xl bg-gray-200 text-black hover:bg-gray-800 hover:text-white transition duration-500">Logout</button>
+        </div>
+    </header>
+
+    <div
+        class="flex flex-row justify-between gap-4 rounded-2xl p-2 bg-cyan-900/70 backdrop-blur-xl w-6/12 mx-auto mt-8 shadow-2xl">
+        <div class="flex flex-row text-slate-200">
+            <img class="rounded-full"
+                src="https://i.pinimg.com/280x280_RS/f2/44/21/f244218220625c2f78086a0151b767c6.jpg" alt="" id="avatar">
+            <div class="text-xl flex flex-col my-4 mx-8 p-2">
+                <p class="p-2">Nickname: <span id="nickname"></span></p>
+                <p class="p-2">Email: <span id="email"></span></p>
+                <p class="p-2">Password: <span id="password"></span></p>
+                <button class="p-2 hover:bg-gray-800 hover:text-white rounded-2xl hover:rounded-2xl transition duration-500 hover:bg-gray-800"
+                    onclick="window.location.href = '/profile/edit.html'">Profile edit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function logout() {
+            $.ajax({
+                url: '/user/auth.php',
+                type: 'POST',
+                data: {
+                    type: 'logout'
+                },
+                success: function (data) {
+                    data = JSON.parse(data);
+                    showNotification(data.message, data.status);
+                    setTimeout(function () {
+                        window.location.href = "/";
+                    }, 1000);
+                }
+            })
+        }
+
+        function getUserData() {
+            $.ajax({
+                url: '/user/auth.php',
+                type: 'GET',
+                success: function (data) {
+                    avatar = document.getElementById('avatar');
+                    data = JSON.parse(data);
+                    console.log(data);
+                }
+            })
+        }
+
+        addEventListener('onDOMContentLoaded', getUserData);
+
+    </script>
+
+    <footer>
+        <p class="text-center text-gray-300/10">&copy; 2024 PinPictures</p>
+    </footer>
+</body>
+
+</html>

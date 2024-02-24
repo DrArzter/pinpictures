@@ -80,6 +80,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(["status" => "error", "message" => $data["message"]]);
             exit;
         }
+    } else if ($type === 'logout') {
+        setcookie('auth_token', '', time() - 3600, '/');
+        echo json_encode(["status" => "success", "message" => "Logout successful"]);
+        exit;
     }
 }
 
