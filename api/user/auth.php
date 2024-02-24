@@ -57,13 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(["status" => "error", "message" => "Nickname or password contains forbidden characters"]);
             exit;
         }
-    
+
         if (strlen($nickname) > 255 || strlen($nickname) < 3) {
             http_response_code(400);
             echo json_encode(["status" => "error", "message" => "Nickname must be between 3 and 255 characters"]);
             exit;
         }
-    
+
         if (strlen($password) > 255 || strlen($password) < 6) {
             http_response_code(400);
             echo json_encode(["status" => "error", "message" => "Password must be between 6 and 255 characters"]);
@@ -86,20 +86,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie('auth_token', '', time() - 3600, '/');
         echo json_encode(["status" => "success", "message" => "Logout successful"]);
         exit;
-    } 
+    }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET')
-{   
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
     if ($token) {
         $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-        $id=$payload->sub;
+        $id = $payload->sub;
         $data = getUserData($id);
     } else {
         $data = json_encode(["status" => "error", "message" => "User not found"]);
     }
     echo $data;
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+    $dataInput = json_decode(file_get_contents('php://input'), true);
+    $nickname = sanitizeInput($dataInput['nickname']);
+
+    if (strlen($nickname) >= 3) {
+        $data = changeNickname($id, $nickname);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Nickname is too short"]);
+    }
     exit;
 }
 
@@ -123,7 +134,23 @@ function getUserData($id)
     }
 }
 
-
+function changeNickname($id, $nickname)
+{
+    global $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    $stmt_check = $conn->prepare("SELECT * FROM users WHERE nickname = ?");
+    $stmt_check->bind_param("s", $nickname);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    if ($result_check->num_rows > 0) {
+        return ["status" => false, "message" => "Nickname already exists"];
+    }
+    $stmt = $conn->prepare("UPDATE users SET nickname = ? WHERE id = ?");
+    return ["status" => true, "message" => "Nickname changed successfully"];
+}
 
 function registration($nickname, $password)
 {

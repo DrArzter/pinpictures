@@ -33,7 +33,7 @@
             <img class="rounded-full" src="" alt="" id="avatar">
             <div class="text-xl flex flex-row my-4 mx-8 p-2">
                 <p class="p-2">Nickname: <span id="nickname"></span></p>
-                <svg class="w-8 cursor-pointer bg-slate-300 rounded-2xl" onclick="changeNickname()"
+                <svg class="w-8 cursor-pointer bg-slate-300 rounded-2xl" onclick="changeNicknameForm()"
                     viewBox="0 -0.5 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <script xmlns="" id="bw-fido2-page-script" />
                     <path
@@ -44,17 +44,19 @@
         </div>
     </div>
 
-    <div id="nicknameForm" class="w-2/12 mx-auto bg-cyan-800/50 text-black p-4 rounded-xl shadow-2xl hidden">
+    <div id="changeNicknameForm" class="w-2/12 mx-auto bg-cyan-800/50 text-black p-4 rounded-xl shadow-2xl hidden z-50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div class="flex flex-col gap-2 items-center">
             <div>
-                <p>Изменить ник</p>
+                <p>Change nickname</p>
             </div>
             <div>
                 <input id="nicknameInput" class="text-black rounded-xl p-2">
             </div>
             <div class="flex gap-2">
-                <button id="cancelNicknameButton" class="bg-red-900/60 backdrop-blur-xl shadow-md w-11/12 hover:bg-red-400/90 transition duration-700 p-2 m-1 rounded-xl hover:text-slate-900">Отмена</button>
-                <button id="submitNicknameButton" class="bg-green-900/60 backdrop-blur-xl shadow-md w-11/12 hover:bg-green-400/90 transition duration-700 p-2 m-1 rounded-xl hover:text-slate-900">Сохранить</button>
+                <button id="cancelNicknameButton"
+                    class="bg-red-900/60 backdrop-blur-xl shadow-md w-11/12 hover:bg-red-400/90 transition duration-700 p-2 m-1 rounded-xl hover:text-slate-900">Cancel</button>
+                <button id="submitNicknameButton"
+                    class="bg-green-900/60 backdrop-blur-xl shadow-md w-11/12 hover:bg-green-400/90 transition duration-700 p-2 m-1 rounded-xl hover:text-slate-900">Save</button>
             </div>
         </div>
     </div>
@@ -78,13 +80,21 @@
             })
         }
 
-        function changeNickname() {
-            const nicknameModal = document.getElementById('nicknameForm');
-            nicknameModal.classList.toggle("hidden");
+        function changeNicknameForm() {
+            const changeNicknameForm = document.getElementById('changeNicknameForm');
+            const cancelNicknameButton = document.getElementById("cancelNicknameButton");
+            const submitNicknameButton = document.getElementById("submitNicknameButton");
 
-            document.getElementById("cancelNicknameButton").addEventListener('click', function () {
-                nicknameModal.classList.add('hidden');
-            })
+            changeNicknameForm.classList.toggle("hidden");
+
+            cancelNicknameButton.onclick = () => {
+                changeNicknameForm.classList.toggle("hidden");
+            }
+
+            submitNicknameButton.onclick = () => {
+                const nicknameInput = document.getElementById("nicknameInput");
+                changeNickname(nicknameInput.value);
+            }
         }
 
         function showNotification(message, type) {
@@ -114,7 +124,14 @@
                 data: JSON.stringify({
                     type: 'changeNickname',
 
-                })
+                }),
+                success: function (data) {
+                    data = JSON.parse(data);
+                    showNotification(data.message, data.status);
+                    setTimeout(function () {
+                        changeNicknameForm.classList.toggle("hidden");
+                    }, 1000);
+                }
             })
         }
 
