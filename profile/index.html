@@ -123,7 +123,7 @@
                 contentType: "application/json",
                 data: JSON.stringify({
                     type: 'changeNickname',
-
+                    nickname: document.getElementById("nicknameInput").value,
                 }),
                 success: function (data) {
                     data = JSON.parse(data);

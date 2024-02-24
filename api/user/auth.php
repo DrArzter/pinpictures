@@ -103,11 +103,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+    $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if ($token) {
+        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $id = $payload->sub;
+        $data = getUserData($id);
+    } else {
+        $data = json_encode(["status" => "error", "message" => "User not found"]);
+        echo $data;
+        exit;
+    }
     $dataInput = json_decode(file_get_contents('php://input'), true);
     $nickname = sanitizeInput($dataInput['nickname']);
-
     if (strlen($nickname) >= 3) {
         $data = changeNickname($id, $nickname);
+        echo $data;
     } else {
         echo json_encode(["status" => "error", "message" => "Nickname is too short"]);
     }
@@ -137,6 +147,7 @@ function getUserData($id)
 function changeNickname($id, $nickname)
 {
     global $dbip, $dbuser, $dbpassword, $dbname;
+    $nickname = "@$nickname";
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
@@ -146,10 +157,16 @@ function changeNickname($id, $nickname)
     $stmt_check->execute();
     $result_check = $stmt_check->get_result();
     if ($result_check->num_rows > 0) {
-        return ["status" => false, "message" => "Nickname already exists"];
+        return json_encode(["status" => false, "message" => "Nickname already exists"]);
     }
     $stmt = $conn->prepare("UPDATE users SET nickname = ? WHERE id = ?");
-    return ["status" => true, "message" => "Nickname changed successfully"];
+    $stmt -> bind_param("si", $nickname, $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $conn->close();
+    if ($result->num_rows > 0) {
+        return json_encode(["status" => true, "message" => "Nickname changed successfully"]);
+    }
 }
 
 function registration($nickname, $password)
