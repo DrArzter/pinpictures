@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $type = sanitizeInput($dataInput['type']);
     if ($type === 'login') {
         $nickname = sanitizeInput($dataInput['nickname']);
+        $nickname = "@$nickname";
         $password = sanitizeInput($dataInput['password']);
         $rememberMe = sanitizeInput($dataInput['rememberMe']) == "yes" ? true : false;
         if ($rememberMe) {
@@ -122,8 +123,11 @@ function getUserData($id)
     }
 }
 
+
+
 function registration($nickname, $password)
 {
+    $nickname = "@$nickname";
     global $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
     if ($conn->connect_error) {
