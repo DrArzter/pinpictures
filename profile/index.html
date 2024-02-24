@@ -36,7 +36,8 @@
                 <p class="p-2">Nickname: <span id="nickname"></span></p>
                 <p class="p-2">Email: <span id="email"></span></p>
                 <p class="p-2">Password: <span id="password"></span></p>
-                <button class="p-2 hover:bg-gray-800 hover:text-white rounded-2xl hover:rounded-2xl transition duration-500 hover:bg-gray-800"
+                <button
+                    class="p-2 hover:bg-gray-800 hover:text-white rounded-2xl hover:rounded-2xl transition duration-500 hover:bg-gray-800"
                     onclick="window.location.href = '/profile/edit.html'">Profile edit</button>
             </div>
         </div>
@@ -45,11 +46,12 @@
     <script>
         function logout() {
             $.ajax({
-                url: '/user/auth.php',
+                url: '/api/user/auth.php',
                 type: 'POST',
-                data: {
+                contentType: "application/json",
+                data: JSON.stringify({
                     type: 'logout'
-                },
+                }),
                 success: function (data) {
                     data = JSON.parse(data);
                     showNotification(data.message, data.status);
@@ -72,7 +74,26 @@
             })
         }
 
-        addEventListener('onDOMContentLoaded', getUserData);
+        function showNotification(message, type) {
+            const notificationContainer = document.getElementById('notification-container');
+            notificationContainer.textContent = message;
+
+            notificationContainer.classList.remove('bg-green-500', 'bg-red-500');
+
+            if (type === 'success') {
+                notificationContainer.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                notificationContainer.classList.add('bg-red-500');
+            }
+
+            notificationContainer.style.display = 'block';
+
+            setTimeout(() => {
+                notificationContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', getUserData);
 
     </script>
 

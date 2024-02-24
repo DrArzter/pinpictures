@@ -3,6 +3,7 @@
 require '../../vendor/autoload.php';
 
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -84,6 +85,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie('auth_token', '', time() - 3600, '/');
         echo json_encode(["status" => "success", "message" => "Logout successful"]);
         exit;
+    } 
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'GET')
+{   
+    $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if ($token) {
+        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $id=$payload->sub;
+        $data = getUserData($id);
+    } else {
+        $data = json_encode(["status" => "error", "message" => "User not found"]);
+    }
+    echo $data;
+    exit;
+}
+
+function getUserData($id)
+{
+    global $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    $stmt = $conn->prepare("SELECT nickname, avatarPath FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $conn->close();
+    if ($result->num_rows > 0) {
+        $user_data = $result->fetch_assoc();
+        return json_encode(["status" => "success", "data" => $user_data]);
+    } else {
+        return json_encode(["status" => "error", "message" => "User not found"]);
     }
 }
 
@@ -156,7 +191,7 @@ function createToken($userId, $authTime)
 {
     global $secretKey;
     $tokenPayload = [
-        "iss" => "WebChat",
+        "iss" => "PinPictures",
         "sub" => $userId,
         "iat" => time(),
         "exp" => time() + $authTime
