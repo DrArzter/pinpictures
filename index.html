@@ -106,7 +106,7 @@
                     data = JSON.parse(data);
                     if (data.status == "success") {
                         buttonDiv = document.getElementById("loginButtonDiv");
-                        buttonDiv.innerHTML = "<p onclick=\"window.location.href = '/profile/'\" class=\"cursor-pointer sm:text-lg lg:text-xl px-4 py-1 rounded-2xl bg-gray-200 text-black hover:bg-gray-800 hover:text-white transition duration-500\">" + data.data.nickname + "</p>";
+                        buttonDiv.innerHTML = "<p class=\" sm:text-lg lg:text-xl px-4 py-1 rounded-2xl bg-gray-200 text-black hover:bg-gray-800 hover:text-white transition duration-500\">" + data.data.nickname + "</p>";
                     } else {
                         buttonDiv = document.getElementById("loginButton");
                         buttonDiv.classList.toggle("hidden");
