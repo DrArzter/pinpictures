@@ -128,9 +128,8 @@
                 success: function (data) {
                     data = JSON.parse(data);
                     showNotification(data.message, data.status);
-                    setTimeout(function () {
-                        changeNicknameForm.classList.toggle("hidden");
-                    }, 1000);
+                    document.getElementById("changeNicknameForm").classList.toggle("hidden");
+                    getUserData();
                 }
             })
         }

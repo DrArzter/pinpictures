@@ -157,15 +157,16 @@ function changeNickname($id, $nickname)
     $stmt_check->execute();
     $result_check = $stmt_check->get_result();
     if ($result_check->num_rows > 0) {
-        return json_encode(["status" => false, "message" => "Nickname already exists"]);
+        return json_encode(["status" => "error", "message" => "Nickname already exists"]);
     }
     $stmt = $conn->prepare("UPDATE users SET nickname = ? WHERE id = ?");
     $stmt -> bind_param("si", $nickname, $id);
     $stmt->execute();
-    $result = $stmt->get_result();
     $conn->close();
-    if ($result->num_rows > 0) {
-        return json_encode(["status" => true, "message" => "Nickname changed successfully"]);
+    if ($stmt->affected_rows > 0) {
+        return json_encode(["status" => "success", "message" => "Nickname changed successfully"]);
+    } else {
+        return json_encode(["status" => "error", "message" => "Unknown error"]);
     }
 }
 
