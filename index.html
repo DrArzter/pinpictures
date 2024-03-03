@@ -55,8 +55,8 @@
                     </div>
                 </div>
                 <div class="flex flex-row gap-2 mt-4">
-                    <input type="file" id="postImage" class="hidden rounded-2xl">
-                    <label for="postImage"
+                    <input type="file" id="postImage" class="rounded-2xl text-slate-200/0 hidden">
+                    <label for="postImage" id ="postImageLabel"
                         class="w-72 h-72 bg-gray-200 flex items-center justify-center rounded-2xl cursor-pointer">
                         <svg fill="#000000" class="w-12 h-12" viewBox="0 0 32 32" version="1.1"
                             xmlns="http://www.w3.org/2000/svg">
@@ -198,21 +198,19 @@
 
                 reader.onload = function (e) {
 
+                    postImageLabel.classList.toggle("hidden");
+                    postImage.classList.toggle("hidden");
+
                     var imageDataUrl = e.target.result;
 
-                    labelContainer.style.backgroundImage = `url(${imageDataUrl})`;
-                    labelContainer.style.backgroundSize = 'cover';
-                    labelContainer.style.backgroundPosition = 'center';
+                    inputElement.style.backgroundImage = `url(${imageDataUrl})`;
+                    inputElement.style.backgroundSize = 'cover';
+                    inputElement.style.backgroundPosition = 'center';
 
                     submitCreatePostButton.onclick = () => {
-                        const titleInput = document.getElementById("textInput");
+                        const titleInput = document.getElementById("titleInputInput");
                         const descriptionInput = document.getElementById("descriptionInput");
-
-                        if (titleInput.value.trim() === '') {
-                            alert('Title cannot be empty');
-                        } else {
-                            createPost(titleInput.value, descriptionInput.value, imageDataUrl);
-                        }
+                        createPost(titleInput.value, descriptionInput.value, $imageDataUrl);
                     }
                 };
                 reader.readAsDataURL(file);
