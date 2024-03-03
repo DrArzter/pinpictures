@@ -29,8 +29,8 @@
             <p class="sm:text-xl text-center lg:text-2xl text-slate-200">Authorization</p>
             <form class="flex flex-col mt-6 text-slate-200" id="login">
                 <label for="nickname" class="bold mx-1">Nickname:</label>
-                <input type="text" class="rounded-2xl bg-slate-200 p-1 text-zinc-800 mt-1" id="loginNickname" name="nickname"
-                    required />
+                <input type="text" class="rounded-2xl bg-slate-200 p-1 text-zinc-800 mt-1" id="loginNickname"
+                    name="nickname" required />
 
                 <label for="password" class="bold mx-1 mt-1">Password:</label>
                 <input type="password" class="rounded-2xl bg-slate-200 text-zinc-800 p-1 mt-1" id="loginPassword"
@@ -48,7 +48,7 @@
             </p>
         </div>
 
-        <div class="bg-gray-500/20 text-slate-200 backdrop-blur-xl rounded-2xl shadow-2xl shadow-xl p-4 w-3/12"
+        <div class="bg-gray-500/20 text-slate-200 backdrop-blur-xl rounded-2xl shadow-2xl shadow-xl p-4 w-11/12 sm:w-6/12 lg:w-3/12 mt-8 sm:mt-0"
             id="registrationForm" style="display: none">
             <p class="sm:text-xl text-slate-200 text-center lg:text-2xl">Registration</p>
             <form class="flex flex-col mt-6 text-slate-200" id="register">
@@ -66,7 +66,7 @@
                     Register
                 </button>
             </form>
-            <p class="text-center text-slate-200" >
+            <p class="text-center text-slate-200">
                 Already have an account?
                 <a href="#" class="text-slate-200" onclick="showLoginForm()">Login</a>
             </p>

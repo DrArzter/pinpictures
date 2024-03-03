@@ -86,8 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie('auth_token', '', time() - 3600, '/');
         echo json_encode(["status" => "success", "message" => "Logout successful"]);
         exit;
+    } else {
+        echo json_encode(["status" => "error", "message" => "Invalid request"]);
     }
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
@@ -160,7 +163,7 @@ function changeNickname($id, $nickname)
         return json_encode(["status" => "error", "message" => "Nickname already exists"]);
     }
     $stmt = $conn->prepare("UPDATE users SET nickname = ? WHERE id = ?");
-    $stmt -> bind_param("si", $nickname, $id);
+    $stmt->bind_param("si", $nickname, $id);
     $stmt->execute();
     $conn->close();
     if ($stmt->affected_rows > 0) {

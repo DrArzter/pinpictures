@@ -11,23 +11,80 @@
 <body class="bg-gradient-to-br from-zinc-950 to-zinc-900 min-h-screen">
     <header class="flex flex-row justify-between bg-zinc-800 py-4 px-4 sm:px-8 text-slate-200 rounded-b-2xl">
         <div class="flex flex-row items-center">
-            <p class="cursor-pointer sm:text-xl lg:text-2xl text-slate-200" onclick="window.location.href = '/'">PinPictures</p>
+            <p class="cursor-pointer sm:text-xl lg:text-2xl text-slate-200" onclick="window.location.href = '/'">
+                PinPictures</p>
         </div>
         <div id="loginButtonDiv">
             <button onclick="window.location.href = '/auth/'"
-                class="hidden sm:text-lg lg:text-xl px-4 py-1 rounded-2xl bg-slate-200 text-zinc-950 hover:bg-zinc-700 hover:text-slate-200 transition duration-500" id="loginButton">Login</button>
+                class="hidden sm:text-lg lg:text-xl px-4 py-1 rounded-2xl bg-slate-200 text-zinc-950 hover:bg-zinc-700 hover:text-slate-200 transition duration-500"
+                id="loginButton">Login</button>
         </div>
     </header>
+
     <main class="mt-4 py-4 px-4 md:px-32">
-        <div class="flex flex-row justify-between rounded-2xl bg-slate-200 p-2"><input class="focus:outline-none bg-slate-200/0 text-zinc-800 w-full p-2" type="text"
-                placeholder="Search"><button><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24"
-                    fill="none">
+        <div class="flex flex-row justify-between rounded-2xl bg-slate-200 p-2">
+            <svg class="w-6 cursor-pointer" onclick="createPostForm()" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 12H20M12 4V20" stroke="#000000" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            <input class="focus:outline-none bg-slate-200 text-zinc-800 w-full p-2" type="text" placeholder="Search">
+            <button>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none">
                     <path
                         d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
                         stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" />
-                </svg></button></div>
+                </svg>
+            </button>
+        </div>
         <div id="Posts" class="flex flex-col gap-2 mt-4 grid-rows-auto"></div>
+        <div id="createPostForm"
+            class="w-auto mx-auto bg-zinc-800/50 text-black p-6 rounded-2xl shadow-2xl hidden z-50 fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-10">
+            <div class="flex flex-col gap-2 items-center">
+                <div class="grid grid-cols-3 gap-32 items-center">
+                    <div class="col-span-1"></div>
+                    <div class="col-span-1 text-center">
+                        <p class="text-slate-200">Create post</p>
+                    </div>
+                    <div class="col-span-1 flex justify-end">
+                        <svg width="32" id="cancelCreatePostButton" class="cursor-pointer fill-red-600"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                d="M16.9498 8.46447C17.3404 8.07394 17.3404 7.44078 16.9498 7.05025C16.5593 6.65973 15.9261 6.65973 15.5356 7.05025L12.0001 10.5858L8.46455 7.05025C8.07402 6.65973 7.44086 6.65973 7.05033 7.05025C6.65981 7.44078 6.65981 8.07394 7.05033 8.46447L10.5859 12L7.05033 15.5355C6.65981 15.9261 6.65981 16.5592 7.05033 16.9497C7.44086 17.3403 8.07402 17.3403 8.46455 16.9497L12.0001 13.4142L15.5356 16.9497C15.9261 17.3403 16.5593 17.3403 16.9498 16.9497C17.3404 16.5592 17.3404 15.9261 16.9498 15.5355L13.4143 12L16.9498 8.46447Z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex flex-row gap-2 mt-4">
+                    <input type="file" id="postImage" class="hidden rounded-2xl">
+                    <label for="postImage"
+                        class="w-72 h-72 bg-gray-200 flex items-center justify-center rounded-2xl cursor-pointer">
+                        <svg fill="#000000" class="w-12 h-12" viewBox="0 0 32 32" version="1.1"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <title>plus-file</title>
+                            <path
+                                d="M4 30.016q0 0.832 0.576 1.408t1.44 0.576h16.992q1.824 0 3.488-0.704t2.88-1.92 1.92-2.88 0.704-3.488q0-2.272-1.088-4.224t-2.912-3.232v-7.552l-8-8h-13.984q-0.832 0-1.44 0.608t-0.576 1.408v28zM8 28v-24h10.016v6.016h5.984v4.096q-0.576-0.128-0.992-0.128-1.824 0-3.488 0.736t-2.88 1.92-1.92 2.848-0.704 3.52q0 2.72 1.504 4.992h-7.52zM18.016 23.008q0-2.080 1.44-3.52t3.552-1.472 3.52 1.472 1.472 3.52-1.472 3.552-3.52 1.44-3.552-1.44-1.44-3.552zM20 24h2.016v2.016h1.984v-2.016h2.016v-1.984h-2.016v-2.016h-1.984v2.016h-2.016v1.984z" />
+                            <script xmlns="" id="bw-fido2-page-script" />
+                        </svg>
+                    </label>
+                    <div class="flex flex-col">
+                        <p class="text-slate-200 mx-2">Title</p>
+                        <textarea placeholder="Add a title"
+                            class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
+                            id="postTitle"></textarea>
+                        <p class="text-slate-200 mx-2">Description</p>
+                        <textarea placeholder="Add a description"
+                            class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
+                            id="postDescription"></textarea>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button id="submitCreatePostButton"
+                        class="bg-green-600/50 text-slate-200 backdrop-blur-xl shadow-md w-11/12 hover:bg-green-400/90 transition duration-700 py-2 px-4 m-1 rounded-2xl hover:text-slate-900">Upload</button>
+                </div>
+            </div>
+        </div>
     </main>
+
     <script>
         posts = [];
         function getPosts(page) {
@@ -49,7 +106,7 @@
             for (let i = 0; i < data.length; i++) {
                 postPlace = document.getElementById("Posts");
                 mainDiv = document.createElement("div");
-                mainDiv.setAttribute("class", "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-cyan-900/70 backdrop-blur-xl shadow-2xl cursor-pointer");
+                mainDiv.setAttribute("class", "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-slate-200/10 w-full md:w-3/4 sm:mx-auto backdrop-blur-xl shadow-inner shadow-slate-200/50 cursor-pointer");
                 mainDiv.setAttribute("id", data[i].id);
                 mainDiv.setAttribute("onclick", "openPost()");
                 postPlace.appendChild(mainDiv);
@@ -98,6 +155,70 @@
             }
         }
 
+        function createPost(title, description, image) {
+            var formData = new FormData();
+            formData.append("title", title);
+            formData.append("description", description);
+            formData.append("image", image);
+            $.ajax({
+                type: "POST",
+                url: "api/posts/posts.php",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    data = JSON.parse(data);
+                    if (data.status == "success") {
+                        getPosts();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    data = JSON.parse(xhr.responseText);
+                    showNotification(data.message, data.status);
+                }
+            })
+        }
+
+        function createPostForm() {
+            const createPostForm = document.getElementById('createPostForm');
+            const cancelCreatePostButton = document.getElementById("cancelCreatePostButton");
+            const submitCreatePostButton = document.getElementById("submitCreatePostButton");
+            const inputElement = document.getElementById('postImage');
+            const labelContainer = document.querySelector('.bg-gray-200');
+
+            createPostForm.classList.toggle("hidden");
+
+            cancelCreatePostButton.onclick = () => {
+                createPostForm.classList.toggle("hidden");
+            }
+
+            inputElement.addEventListener('change', function () {
+                var file = inputElement.files[0];
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+
+                    var imageDataUrl = e.target.result;
+
+                    labelContainer.style.backgroundImage = `url(${imageDataUrl})`;
+                    labelContainer.style.backgroundSize = 'cover';
+                    labelContainer.style.backgroundPosition = 'center';
+
+                    submitCreatePostButton.onclick = () => {
+                        const titleInput = document.getElementById("textInput");
+                        const descriptionInput = document.getElementById("descriptionInput");
+
+                        if (titleInput.value.trim() === '') {
+                            alert('Title cannot be empty');
+                        } else {
+                            createPost(titleInput.value, descriptionInput.value, imageDataUrl);
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         function getUserData() {
             $.ajax({
                 url: '/api/user/auth.php',
@@ -115,13 +236,13 @@
                 }
             })
         }
+
         document.addEventListener('DOMContentLoaded', function () {
             getUserData();
             getPosts(1);
         });
+
     </script>
-
-
 </body>
 
 </html>
