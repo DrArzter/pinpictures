@@ -166,16 +166,19 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                success: function (data) {
-                    data = JSON.parse(data);
-                    if (data.status == "success") {
-                        getPosts();
-                    }
-                },
-                error: function (xhr, status, error) {
-                    data = JSON.parse(xhr.responseText);
-                    showNotification(data.message, data.status);
-                }
+                //success: function (data) {
+                //    data = JSON.parse(data);
+                //    if (data.status == "success") {
+                //        showNotification(data.message, data.status);
+                //        getPosts();
+                //    } else {
+                //        showNotification(data.message, data.status);
+                //    }
+                //},
+                //error: function (xhr, status, error) {
+                //    data = JSON.parse(xhr.responseText);
+                //    showNotification(data.message, data.status);
+                //}
             })
         }
 
@@ -184,6 +187,8 @@
             const cancelCreatePostButton = document.getElementById("cancelCreatePostButton");
             const submitCreatePostButton = document.getElementById("submitCreatePostButton");
             const inputElement = document.getElementById('postImage');
+            const titleInput = document.getElementById("postTitle");
+            const descriptionInput = document.getElementById("postDescription");
             const labelContainer = document.querySelector('.bg-gray-200');
 
             createPostForm.classList.toggle("hidden");
@@ -208,9 +213,7 @@
                     inputElement.style.backgroundPosition = 'center';
 
                     submitCreatePostButton.onclick = () => {
-                        const titleInput = document.getElementById("titleInputInput");
-                        const descriptionInput = document.getElementById("descriptionInput");
-                        createPost(titleInput.value, descriptionInput.value, $imageDataUrl);
+                        createPost(titleInput.value, descriptionInput.value, imageDataUrl);
                     }
                 };
                 reader.readAsDataURL(file);
