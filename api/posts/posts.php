@@ -2,6 +2,9 @@
 
 require '../../vendor/autoload.php';
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -20,16 +23,23 @@ function sanitizeInput($input)
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_COOKIE['auth_token'])) {
-        http_response_code(401);
+    $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if ($token) {
+        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $id = $payload->sub;
+        if (checkToken($id)) {
+            $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+            $authorID = $payload->sub;
+            $postTitle = sanitizeInput($_POST['title']);
+            $postDesctiprion = sanitizeInput($_POST['description']);
+            $image = $_FILES['image'];
+            createPost($postTitle, $authorID, $postDesctiprion, $image);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     }
-    $post = json_decode(file_get_contents('php://input'), true);
-    $title = sanitizeInput($post['title']);
-    $description = sanitizeInput($post['description']);
-    $picture = sanitizeInput($post['picture']);
-    $status = createPost($title, $description, $picture);
-    echo $status;
-    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -37,6 +47,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $posts = getPosts($page);
     echo json_encode($posts);
     exit;
+}
+
+function createPost($title, $authorID, $description, $image)
+{
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+
+    $permittedFiles = array('png', 'jpg', 'jpeg');
+    $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
+
+    if (!in_array($ext, $permittedFiles)) {
+        echo json_encode(["status" => "error", "message" => "Invalid file type"]);
+    }
+
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $stmt = $conn->prepare("INSERT INTO posts (authorID, title, description) VALUES (?, ?, ?)");
+    $stmt->bind_param("iss", $authorID, $title, $description);
+    $stmt->execute();
+    $id = $stmt->insert_id;
+    $image = "$id.png";
+    $stmt->close();
+
+    if ($_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        move_uploaded_file($_FILES['image']['tmp_name'], "../../storage/imgs/$image");
+    } else {
+        echo json_encode(["status" => "error", "message" => "File upload failed"]);
+        exit;
+    }
+   
+    $stmt = $conn->prepare("UPDATE posts SET picPath = ? WHERE id = ?");
+    $stmt->bind_param("si", $image, $id);
+    $stmt->execute();
+    
+    if ($stmt->affected_rows > 0) {
+        echo json_encode(["status" => "success", "message" => "Post created successfully"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Unknown error"]);
+    }
+
+    $stmt->close();
+
 }
 
 function getPosts($page)
@@ -55,35 +109,25 @@ function getPosts($page)
     return $posts;
 }
 
-function createPost($title, $description, $picture)
+function checkToken($id)
 {
-    global $dbip, $dbuser, $dbpassword, $dbname;
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-
-    $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'svg');
-    $fileExtension = strtolower(pathinfo($_FILES['picture']['name'], PATHINFO_EXTENSION));
-
-    if (!in_array($fileExtension, $allowedExtensions)) {
-        return json_encode(["status" => "error", "message" => "Invalid file type"]);
-    }
-
-    $stmt = $conn->prepare("INSERT INTO posts (title, description, picture) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $title, $description, $picture);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
     $stmt->execute();
-    $id = $stmt->insert_id;
-    $image = "$id.png";
-    move_uploaded_file($_FILES['picture']['tmp_name'], "storage/imgs/$image");
+    $result = $stmt->get_result();
     $stmt->close();
-    $stmt = $conn->prepare("UPDATE posts SET picture = ? WHERE id = ?");
-    $stmt->bind_param("si", $image, $id);
-    $stmt->execute();
-    if ($stmt->affected_rows > 0) {
-        return json_encode(["status" => "success", "message" => "Post created successfully"]);
+    if ($result->num_rows > 0) {
+        return true;
     } else {
-        return json_encode(["status" => "error", "message" => "Unknown error"]);
+        return false;
     }
+
 }
+
+
 

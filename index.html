@@ -9,6 +9,11 @@
 </head>
 
 <body class="bg-gradient-to-br from-zinc-950 to-zinc-900 min-h-screen">
+
+    <div id="notification-container"
+        class="fixed top-0 right-0 mt-20 mr-4 text-white p-4 rounded-2xl shadow-2xl hidden z-50" wfd-invisible="false">
+    </div>
+
     <header class="flex flex-row justify-between bg-zinc-800 py-4 px-4 sm:px-8 text-slate-200 rounded-b-2xl">
         <div class="flex flex-row items-center">
             <p class="cursor-pointer sm:text-xl lg:text-2xl text-slate-200" onclick="window.location.href = '/'">
@@ -56,7 +61,7 @@
                 </div>
                 <div class="flex flex-row gap-2 mt-4">
                     <input type="file" id="postImage" class="rounded-2xl text-slate-200/0 hidden">
-                    <label for="postImage" id ="postImageLabel"
+                    <label for="postImage" id="postImageLabel"
                         class="w-72 h-72 bg-gray-200 flex items-center justify-center rounded-2xl cursor-pointer">
                         <svg fill="#000000" class="w-12 h-12" viewBox="0 0 32 32" version="1.1"
                             xmlns="http://www.w3.org/2000/svg">
@@ -70,16 +75,19 @@
                         <p class="text-slate-200 mx-2">Title</p>
                         <textarea placeholder="Add a title"
                             class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
-                            id="postTitle"></textarea>
+                            id="postTitle">
+                        </textarea>
                         <p class="text-slate-200 mx-2">Description</p>
                         <textarea placeholder="Add a description"
                             class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
-                            id="postDescription"></textarea>
+                            id="postDescription">
+                        </textarea>
                     </div>
                 </div>
                 <div class="flex gap-2">
                     <button id="submitCreatePostButton"
-                        class="bg-green-600/50 text-slate-200 backdrop-blur-xl shadow-md w-11/12 hover:bg-green-400/90 transition duration-700 py-2 px-4 m-1 rounded-2xl hover:text-slate-900">Upload</button>
+                        class="bg-green-600/50 text-slate-200 backdrop-blur-xl shadow-md w-11/12 hover:bg-green-400/90 transition duration-700 py-2 px-4 m-1 rounded-2xl hover:text-slate-900">Upload
+                    </button>
                 </div>
             </div>
         </div>
@@ -102,6 +110,56 @@
             })
         }
 
+        function showNotification(message, type) {
+            const notificationContainer = document.getElementById('notification-container');
+            notificationContainer.textContent = message;
+
+            notificationContainer.classList.remove('bg-green-500', 'bg-red-500');
+
+            if (type === 'success') {
+                notificationContainer.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                notificationContainer.classList.add('bg-red-500');
+            }
+
+            notificationContainer.style.display = 'block';
+
+            setTimeout(() => {
+                notificationContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        function createPostForm() {
+            document.getElementById("createPostForm").classList.toggle("hidden");
+            document.getElementById("cancelCreatePostButton").onclick = () => {
+                document.getElementById("createPostForm").classList.toggle("hidden");
+            }
+            document.getElementById("submitCreatePostButton").onclick = () => {
+                var formData = new FormData()
+                formData.append("title", document.getElementById("postTitle").value);
+                formData.append("description", document.getElementById("postDescription").value);
+                formData.append("image", document.getElementById("postImage").files[0]);
+                $.ajax({
+                    type: "POST",
+                    url: "api/posts/posts.php",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        showNotification(data.message, data.status);
+                        document.getElementById("createPostForm").classList.toggle("hidden");
+                        getPosts(1);
+                    },
+                    error: function (xhr, status, error) {
+                        data = JSON.parse(xhr.responseText);
+                        showNotification(data.message, data.status);
+                    }
+                })
+
+            }
+        }
+
         function showPosts(data) {
             for (let i = 0; i < data.length; i++) {
                 postPlace = document.getElementById("Posts");
@@ -115,7 +173,7 @@
                 mainDiv.appendChild(imgDiv);
                 image = document.createElement("img");
                 image.setAttribute("class", "w-full rounded-2xl");
-                image.setAttribute("src", "/storage/imgs/" + data[1].picPath);
+                image.setAttribute("src", "/storage/imgs/" + data[i].picPath);
                 imgDiv.appendChild(image);
                 textDiv = document.createElement("div");
                 textDiv.setAttribute("class", "w-1/2");
@@ -153,71 +211,6 @@
                 likeButton.appendChild(likeSVG);
                 likeButton.appendChild(likeCount);
             }
-        }
-
-        function createPost(title, description, image) {
-            var formData = new FormData();
-            formData.append("title", title);
-            formData.append("description", description);
-            formData.append("image", image);
-            $.ajax({
-                type: "POST",
-                url: "api/posts/posts.php",
-                data: formData,
-                processData: false,
-                contentType: false,
-                //success: function (data) {
-                //    data = JSON.parse(data);
-                //    if (data.status == "success") {
-                //        showNotification(data.message, data.status);
-                //        getPosts();
-                //    } else {
-                //        showNotification(data.message, data.status);
-                //    }
-                //},
-                //error: function (xhr, status, error) {
-                //    data = JSON.parse(xhr.responseText);
-                //    showNotification(data.message, data.status);
-                //}
-            })
-        }
-
-        function createPostForm() {
-            const createPostForm = document.getElementById('createPostForm');
-            const cancelCreatePostButton = document.getElementById("cancelCreatePostButton");
-            const submitCreatePostButton = document.getElementById("submitCreatePostButton");
-            const inputElement = document.getElementById('postImage');
-            const titleInput = document.getElementById("postTitle");
-            const descriptionInput = document.getElementById("postDescription");
-            const labelContainer = document.querySelector('.bg-gray-200');
-
-            createPostForm.classList.toggle("hidden");
-
-            cancelCreatePostButton.onclick = () => {
-                createPostForm.classList.toggle("hidden");
-            }
-
-            inputElement.addEventListener('change', function () {
-                var file = inputElement.files[0];
-                var reader = new FileReader();
-
-                reader.onload = function (e) {
-
-                    postImageLabel.classList.toggle("hidden");
-                    postImage.classList.toggle("hidden");
-
-                    var imageDataUrl = e.target.result;
-
-                    inputElement.style.backgroundImage = `url(${imageDataUrl})`;
-                    inputElement.style.backgroundSize = 'cover';
-                    inputElement.style.backgroundPosition = 'center';
-
-                    submitCreatePostButton.onclick = () => {
-                        createPost(titleInput.value, descriptionInput.value, imageDataUrl);
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
         }
 
         function getUserData() {
