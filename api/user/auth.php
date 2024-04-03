@@ -26,7 +26,7 @@ $forbiddenChars = "#$%&卐‎  ";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dataInput = json_decode(file_get_contents('php://input'), true);
-    $type = sanitizeInput($dataInput['type']);
+    $type = sanitizeInput($_POST['type']);
     if ($type === 'login') {
         $nickname = sanitizeInput($dataInput['nickname']);
         $nickname = "@$nickname";
@@ -86,6 +86,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setcookie('auth_token', '', time() - 3600, '/');
         echo json_encode(["status" => "success", "message" => "Logout successful"]);
         exit;
+    } else if ($type === 'changeAvatar') {
+        $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+        if ($token) {
+            $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+            $id = $payload->sub;
+            $image = $_FILES['image'];
+            changeAvatar($id, $image);
+        } else {
+            echo json_encode(["status" => "error", "message" => "Unauthorized"]);
+        }
+    } else if ($type === 'changeAvatar') {
+        $image = $_FILES['image'];
+        changeAvatar($id, $image);
+        
     } else {
         echo json_encode(["status" => "error", "message" => "Invalid request"]);
     }
@@ -125,6 +139,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
         echo json_encode(["status" => "error", "message" => "Nickname is too short"]);
     }
     exit;
+}
+
+
+function changeAvatar($id, $image)
+{
+    global $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    $permittedFiles = array('png', 'jpg', 'jpeg');
+    $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
+
+    if (!in_array($ext, $permittedFiles)) {
+        echo json_encode(["status" => "error", "message" => "Invalid file type"]);
+    }
+
+    $image = "$id.png";
+
+     if ($_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        move_uploaded_file($_FILES['image']['tmp_name'], "../../storage/avatars/$image");
+    } else {
+        echo json_encode(["status" => "error", "message" => "File upload failed"]);
+        exit;
+    }
+
+    $stmt = $conn->prepare("UPDATE users SET avatarPath = ? WHERE id = ?");
+    $stmt->bind_param("si", $image, $id);
+    $stmt->execute();
 }
 
 function getUserData($id)
