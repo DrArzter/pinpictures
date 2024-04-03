@@ -189,7 +189,7 @@
                 profileName = document.createElement("p");
                 profileName.setAttribute("class", "flex flex-row items-center text-black font-bold self-center text-sm md:text-md");
                 profileName.setAttribute("userID", data[i].authorID);
-                profileName.innerHTML = "@hymaxo";
+                profileName.innerHTML = data[i].nickname;
                 profileDiv.appendChild(profileName);
                 title = document.createElement("p");
                 title.setAttribute("class", "text-black font-bold self-center text-sm md:text-md");

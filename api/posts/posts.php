@@ -101,7 +101,7 @@ function getPosts($page)
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $stmt = $conn->prepare("SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET ?;");
+    $stmt = $conn->prepare("SELECT p.title, p.description, p.picPath, p.created_at, p.likes, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id ORDER BY created_at DESC LIMIT 20 OFFSET ?;");
     $stmt->bind_param("i", $page);
     $stmt->execute();
     $result = $stmt->get_result();
