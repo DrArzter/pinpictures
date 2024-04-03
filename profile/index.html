@@ -206,7 +206,8 @@
             profilePic = document.createElement("img");
             profilePic.setAttribute("class", "w-8 h-8 sm:w-24 sm:h-24 rounded-full");
             profilePic.setAttribute('onclick', 'changeAvatarForm()');
-            profilePic.setAttribute("src", "/storage/avatars/" + data.avatarPath);
+            profilePic.setAttribute("src", "/storage/avatars/" + data.avatarPath + "?v=" + Date.now());
+
             mainDiv.appendChild(profilePic);
 
             profileName = document.createElement("p");

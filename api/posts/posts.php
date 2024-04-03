@@ -24,6 +24,12 @@ function sanitizeInput($input)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    $dataInput = json_decode(file_get_contents('php://input'), true);
+    if (!empty($_POST['type'])) {
+        $type = sanitizeInput($_POST['type']);
+    } else {
+        $type = sanitizeInput($dataInput['type']);
+    }
     if ($token) {
         $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
         $id = $payload->sub;
@@ -78,11 +84,11 @@ function createPost($title, $authorID, $description, $image)
         echo json_encode(["status" => "error", "message" => "File upload failed"]);
         exit;
     }
-   
+
     $stmt = $conn->prepare("UPDATE posts SET picPath = ? WHERE id = ?");
     $stmt->bind_param("si", $image, $id);
     $stmt->execute();
-    
+
     if ($stmt->affected_rows > 0) {
         echo json_encode(["status" => "success", "message" => "Post created successfully"]);
     } else {
@@ -90,7 +96,6 @@ function createPost($title, $authorID, $description, $image)
     }
 
     $stmt->close();
-
 }
 
 function getPosts($page)
@@ -101,7 +106,7 @@ function getPosts($page)
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $stmt = $conn->prepare("SELECT p.title, p.description, p.picPath, p.created_at, p.likes, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id ORDER BY created_at DESC LIMIT 20 OFFSET ?;");
+    $stmt = $conn->prepare("SELECT p.id, p.title, p.description, p.picPath, p.created_at, COUNT(l.user_id) AS likes_count, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id LEFT JOIN likes l ON p.id = l.post_id GROUP BY p.id ORDER BY p.created_at DESC LIMIT 20 OFFSET ?;");
     $stmt->bind_param("i", $page);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -126,8 +131,4 @@ function checkToken($id)
     } else {
         return false;
     }
-
 }
-
-
-
