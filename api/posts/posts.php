@@ -30,21 +30,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $type = sanitizeInput($dataInput['type']);
     }
-    if ($token) {
-        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-        $id = $payload->sub;
-        if (checkToken($id)) {
+
+    if ($type === 'createPost') {
+        if ($token) {
             $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-            $authorID = $payload->sub;
-            $postTitle = sanitizeInput($_POST['title']);
-            $postDesctiprion = sanitizeInput($_POST['description']);
-            $image = $_FILES['image'];
-            createPost($postTitle, $authorID, $postDesctiprion, $image);
+            $id = $payload->sub;
+            if (checkToken($id)) {
+                $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+                $authorID = $payload->sub;
+                $postTitle = sanitizeInput($_POST['title']);
+                $postDesctiprion = sanitizeInput($_POST['description']);
+                $image = $_FILES['image'];
+                createPost($postTitle, $authorID, $postDesctiprion, $image);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            }
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
         }
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
     }
 }
 
@@ -53,6 +58,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $posts = getPosts($page);
     echo json_encode($posts);
     exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
+    $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    $dataInput = json_decode(file_get_contents('php://input'), true);
+    $type = sanitizeInput($dataInput['type']);
+    $postID = sanitizeInput($dataInput['postID']);
+    if ($type === 'likePost') {
+        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $postID = sanitizeInput($dataInput['postID']);
+        $id = $payload->sub;
+        if (checkToken($id)) {
+            likePost($id, $postID);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
+    }
+}
+
+function likePost($userID, $postID)
+{
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    $stmt = $conn->prepare("SELECT * FROM likes WHERE userID = ? AND postID = ?");
+    $stmt->bind_param("ii", $userID, $postID);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $stmt = $conn->prepare("DELETE FROM likes WHERE userID = ? AND postID = ?");
+        $stmt->bind_param("ii", $userID, $postID);
+        $stmt->execute();
+        echo json_encode(['status' => 'success', 'message' => 'Post unliked']);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO likes (userID, postID) VALUES (?, ?)");
+        $stmt->bind_param("ii", $userID, $postID);
+        $stmt->execute();
+        echo json_encode(['status' => 'success', 'message' => 'Post liked']);
+    }
 }
 
 function createPost($title, $authorID, $description, $image)
@@ -106,7 +151,7 @@ function getPosts($page)
         die("Connection failed: " . $conn->connect_error);
     }
 
-    $stmt = $conn->prepare("SELECT p.id, p.title, p.description, p.picPath, p.created_at, COUNT(l.user_id) AS likes_count, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id LEFT JOIN likes l ON p.id = l.post_id GROUP BY p.id ORDER BY p.created_at DESC LIMIT 20 OFFSET ?;");
+    $stmt = $conn->prepare("SELECT p.id, p.title, p.description, p.picPath, p.created_at, COUNT(l.userID) AS likes_count, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id LEFT JOIN likes l ON p.id = l.postID GROUP BY p.id ORDER BY p.created_at DESC LIMIT 20 OFFSET ?;");
     $stmt->bind_param("i", $page);
     $stmt->execute();
     $result = $stmt->get_result();
