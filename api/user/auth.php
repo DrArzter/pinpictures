@@ -164,16 +164,19 @@ function changeAvatar($id, $image)
     $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
 
     if (!in_array($ext, $permittedFiles)) {
-        echo json_encode(["status" => "error", "message" => "Invalid file type"]);
+        return json_encode(["status" => "error", "message" => "Invalid file type"]);
     }
 
     $image = "$id.png";
 
+    $stmt = $conn->prepare("UPDATE users SET avatarPath = ? WHERE id = ?");
+    $stmt->bind_param("si", $image, $id);
+    $stmt->execute();
+    
     if ($_FILES['image']['error'] == UPLOAD_ERR_OK) {
         move_uploaded_file($_FILES['image']['tmp_name'], "../../storage/avatars/$image");
     } else {
-        echo json_encode(["status" => "error", "message" => "File upload failed"]);
-        exit;
+        return json_encode(["status" => "error", "message" => "File upload failed"]);
     }
 }
 

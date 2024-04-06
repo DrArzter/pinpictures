@@ -34,22 +34,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($type === 'createPost') {
         if ($token) {
             $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-            $id = $payload->sub;
+            $id = sanitizeInput($payload->sub);
             if (checkToken($id)) {
                 $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
                 $authorID = $payload->sub;
                 $postTitle = sanitizeInput($_POST['title']);
                 $postDesctiprion = sanitizeInput($_POST['description']);
                 $image = $_FILES['image'];
-                createPost($postTitle, $authorID, $postDesctiprion, $image);
+                echo createPost($postTitle, $authorID, $postDesctiprion, $image);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+                exit;
             }
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
+        exit;
     }
 }
 
@@ -57,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $page = (intval(sanitizeInput($_GET['page'])) - 1) * 20;
     $posts = getPosts($page);
     echo json_encode($posts);
-    exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
@@ -68,9 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
     if ($type === 'likePost') {
         $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
         $postID = sanitizeInput($dataInput['postID']);
-        $id = $payload->sub;
+        $id = sanitizeInput($payload->sub);
         if (checkToken($id)) {
-            likePost($id, $postID);
+            echo likePost($id, $postID);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
         }
@@ -91,12 +93,12 @@ function likePost($userID, $postID)
         $stmt = $conn->prepare("DELETE FROM likes WHERE userID = ? AND postID = ?");
         $stmt->bind_param("ii", $userID, $postID);
         $stmt->execute();
-        echo json_encode(['status' => 'success', 'message' => 'Post unliked']);
+        return json_encode(['status' => 'success', 'message' => 'Post unliked']);
     } else {
         $stmt = $conn->prepare("INSERT INTO likes (userID, postID) VALUES (?, ?)");
         $stmt->bind_param("ii", $userID, $postID);
         $stmt->execute();
-        echo json_encode(['status' => 'success', 'message' => 'Post liked']);
+        return json_encode(['status' => 'success', 'message' => 'Post liked']);
     }
 }
 
@@ -105,11 +107,11 @@ function createPost($title, $authorID, $description, $image)
     global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
 
-    $permittedFiles = array('png', 'jpg', 'jpeg');
+    $permittedFiles = array('png', 'jpg', 'jpeg', 'webp');
     $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
 
     if (!in_array($ext, $permittedFiles)) {
-        echo json_encode(["status" => "error", "message" => "Invalid file type"]);
+        return json_encode(["status" => "error", "message" => "Invalid file type"]);
     }
 
     if ($conn->connect_error) {
@@ -119,15 +121,14 @@ function createPost($title, $authorID, $description, $image)
     $stmt = $conn->prepare("INSERT INTO posts (authorID, title, description) VALUES (?, ?, ?)");
     $stmt->bind_param("iss", $authorID, $title, $description);
     $stmt->execute();
-    $id = $stmt->insert_id;
+    $id = sanitizeInput($stmt->insert_id);
     $image = "$id.png";
     $stmt->close();
 
     if ($_FILES['image']['error'] == UPLOAD_ERR_OK) {
         move_uploaded_file($_FILES['image']['tmp_name'], "../../storage/imgs/$image");
     } else {
-        echo json_encode(["status" => "error", "message" => "File upload failed"]);
-        exit;
+        return json_encode(["status" => "error", "message" => "File upload failed"]);
     }
 
     $stmt = $conn->prepare("UPDATE posts SET picPath = ? WHERE id = ?");
@@ -135,12 +136,10 @@ function createPost($title, $authorID, $description, $image)
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
-        echo json_encode(["status" => "success", "message" => "Post created successfully"]);
+        return json_encode(["status" => "success", "message" => "Post created successfully"]);
     } else {
-        echo json_encode(["status" => "error", "message" => "Unknown error"]);
+        return json_encode(["status" => "error", "message" => "Unknown error"]);
     }
-
-    $stmt->close();
 }
 
 function getPosts($page)
