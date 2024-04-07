@@ -257,6 +257,7 @@
     }
 
     function likePost(postID) {
+      postID = parseInt(postID);
       $.ajax({
         type: "PATCH",
         url: "api/posts/posts.php",
@@ -268,7 +269,6 @@
         success: function (data) {
           data = JSON.parse(data);
           if (data.message == "Post liked") {
-            console.warn(postID);
             posts[getIndex(postID)].likes_count++;
           } else if (data.message == "Post unliked") {
             posts[getIndex(postID)].likes_count--;
