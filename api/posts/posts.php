@@ -59,6 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+
     $page = (intval(sanitizeInput($_GET['page'])) - 1) * 20;
     $posts = getPosts($page);
     echo json_encode($posts);
@@ -173,19 +174,46 @@ function createPost($title, $authorID, $description, $image)
 }
 
 function getPosts($page)
-{
+{   
     global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+
+    $userID = isset($_COOKIE['userID']) ? $_COOKIE['userID'] : null;
+
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
-
-    $stmt = $conn->prepare("SELECT p.id, p.title, p.description, p.picPath, p.created_at, COUNT(l.userID) AS likes_count, u.nickname, u.avatarPath FROM posts p JOIN users u ON p.authorID = u.id LEFT JOIN likes l ON p.id = l.postID GROUP BY p.id ORDER BY p.created_at DESC LIMIT 20 OFFSET ?;");
-    $stmt->bind_param("i", $page);
+    
+    $stmt = $conn->prepare("
+        SELECT 
+            p.id, 
+            p.title, 
+            p.description, 
+            p.picPath, 
+            p.created_at, 
+            COUNT(l.userID) AS likes_count, 
+            u.nickname, 
+            u.avatarPath,
+            CASE WHEN EXISTS (
+                SELECT 1 FROM likes l2 WHERE l2.postID = p.id AND l2.userID = ?
+            ) THEN true ELSE false END AS liked_by_user
+        FROM 
+            posts p 
+            JOIN users u ON p.authorID = u.id 
+            LEFT JOIN likes l ON p.id = l.postID 
+        GROUP BY 
+            p.id 
+        ORDER BY 
+            p.created_at DESC 
+        LIMIT 20 OFFSET ?;
+    ");
+    
+    $stmt->bind_param("ii", $userID, $page);
     $stmt->execute();
     $result = $stmt->get_result();
     $posts = $result->fetch_all(MYSQLI_ASSOC);
     return $posts;
+    
 }
 
 function checkToken($id)
