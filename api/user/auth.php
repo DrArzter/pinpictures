@@ -304,3 +304,23 @@ function createToken($userId, $authTime)
     $token = JWT::encode($tokenPayload, $secretKey, 'HS256');
     return $token;
 }
+
+function checkToken($id)
+{
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+    $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
+    if ($result->num_rows > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+

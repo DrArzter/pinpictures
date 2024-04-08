@@ -65,8 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
+    $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if (!$token) {
+        $id = 0;
+    } else {
+        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+        $id = $payload->sub;
+    }
+
     $page = (intval(sanitizeInput($_GET['page'])) - 1) * 20;
-    $posts = getPosts($page);
+    $posts = getPosts($page, $id);
     echo json_encode($posts);
 }
 
@@ -183,12 +191,10 @@ function createPost($title, $authorID, $description, $image)
     }
 }
 
-function getPosts($page)
+function getPosts($page, $id)
 {   
     global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
-
-    $userID = isset($_COOKIE['userID']) ? $_COOKIE['userID'] : null;
 
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
@@ -218,7 +224,7 @@ function getPosts($page)
         LIMIT 20 OFFSET ?;
     ");
     
-    $stmt->bind_param("ii", $userID, $page);
+    $stmt->bind_param("ii", $id, $page);
     $stmt->execute();
     $result = $stmt->get_result();
     $posts = $result->fetch_all(MYSQLI_ASSOC);
