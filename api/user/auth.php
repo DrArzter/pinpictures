@@ -22,7 +22,7 @@ function sanitizeInput($input)
     return $input !== null ? htmlspecialchars($input, ENT_QUOTES, 'UTF-8') : '';
 }
 
-$forbiddenChars = "#$%&卐‎  ";
+$forbiddenChars = "卐‎  ";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dataInput = json_decode(file_get_contents('php://input'), true);

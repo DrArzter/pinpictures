@@ -24,6 +24,11 @@ function sanitizeInput($input)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        exit;
+    }
     $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
     $id = sanitizeInput($payload->sub);
     $dataInput = json_decode(file_get_contents('php://input'), true);
@@ -67,6 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    if (!$token) {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+        exit;
+    }
     $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
     $id = sanitizeInput($payload->sub);
 
