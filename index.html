@@ -79,7 +79,7 @@
             <p class="text-slate-200 mx-2">Description</p>
             <textarea placeholder="Add a description"
               class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
-              id="postDescription">
+              id="postDescription"> 
               </textarea>
           </div>
         </div>
@@ -132,6 +132,8 @@
     }
 
     function createPostForm() {
+      document.getElementById("postDescription").value = "";
+      document.getElementById("postTitle").value = "";
       document.getElementById("createPostForm").classList.toggle("hidden");
       document.getElementById("cancelCreatePostButton").onclick = () => {
         document.getElementById("createPostForm").classList.toggle("hidden");
@@ -175,10 +177,10 @@
         mainDiv = document.createElement("div");
         mainDiv.setAttribute(
           "class",
-          "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-slate-200/10 w-full md:w-3/4 sm:mx-auto backdrop-blur-xl shadow-inner shadow-slate-200/50 cursor-pointer"
+          "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-slate-200/10 w-full h-full sm:mx-auto backdrop-blur-xl shadow-inner shadow-slate-200/50 cursor-pointer"
         );
         mainDiv.setAttribute("id", data[i].id);
-        mainDiv.setAttribute("onclick", "openPost()");
+        //mainDiv.setAttribute("onclick", "openPost()");
         postPlace.appendChild(mainDiv);
         imgDiv = document.createElement("div");
         imgDiv.setAttribute("class", "w-1/2");
@@ -268,11 +270,7 @@
         }),
         success: function (data) {
           data = JSON.parse(data);
-          if (data.message == "Post liked") {
-            posts[getIndex(postID)].likes_count++;
-          } else if (data.message == "Post unliked") {
-            posts[getIndex(postID)].likes_count--;
-          }
+          posts[getIndex(postID)].likes_count = data.likes;
           $("[postid=" + postID + "]").find("#likeCount").html(posts[getIndex(postID)].likes_count);
         },
         error: function (xhr, status, error) {

@@ -24,7 +24,10 @@ function sanitizeInput($input)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+    $id = sanitizeInput($payload->sub);
     $dataInput = json_decode(file_get_contents('php://input'), true);
+
     if (!empty($_POST['type'])) {
         $type = sanitizeInput($_POST['type']);
     } else {
@@ -32,27 +35,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($type === 'createPost') {
-        if ($token) {
-            $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-            $id = sanitizeInput($payload->sub);
-            if (checkToken($id)) {
-                $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-                $authorID = $payload->sub;
-                $postTitle = sanitizeInput($_POST['title']);
-                $postDesctiprion = sanitizeInput($_POST['description']);
-                $image = $_FILES['image'];
-                echo createPost($postTitle, $authorID, $postDesctiprion, $image);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
-                exit;
-            }
+        if (checkToken($id)) {
+            $postTitle = sanitizeInput($_POST['title']);
+            $postDesctiprion = sanitizeInput($_POST['description']);
+            $image = $_FILES['image'];
+            echo createPost($postTitle, $id, $postDesctiprion, $image);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+    } else if ($type === 'createComment') {
+        if (checkToken($id)) {
+            $postID = sanitizeInput($_POST['postID']);
+            $comment = sanitizeInput($_POST['comment']);
+            echo createComment($id, $postID, $comment);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
             exit;
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
-        exit;
     }
 }
 
@@ -64,13 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
     $token = isset($_COOKIE['auth_token']) ? sanitizeInput($_COOKIE['auth_token']) : false;
+    $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
+    $id = sanitizeInput($payload->sub);
+
     $dataInput = json_decode(file_get_contents('php://input'), true);
+
     $type = sanitizeInput($dataInput['type']);
     $postID = sanitizeInput($dataInput['postID']);
+    
     if ($type === 'likePost') {
-        $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
-        $postID = sanitizeInput($dataInput['postID']);
-        $id = sanitizeInput($payload->sub);
         if (checkToken($id)) {
             echo likePost($id, $postID);
         } else {
@@ -78,6 +82,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'PATCH') {
         }
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Invalid request']);
+    }
+}
+
+function createComment($userID, $postID, $comment)
+{
+    global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
+    $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
+    $stmt = $conn->prepare("INSERT INTO comments (userID, postID, comment) VALUES (?, ?, ?)");
+    $stmt->bind_param("iis", $userID, $postID, $comment);
+    $stmt->execute();
+    if ($stmt->affected_rows > 0) {
+        $stmt->close();
+        return json_encode(['status' => 'success', 'message' => 'Comment added successfully']);
+    } else {
+        $stmt->close();
+        return json_encode(['status' => 'error', 'message' => 'Failed to add comment']);
     }
 }
 
@@ -93,12 +113,22 @@ function likePost($userID, $postID)
         $stmt = $conn->prepare("DELETE FROM likes WHERE userID = ? AND postID = ?");
         $stmt->bind_param("ii", $userID, $postID);
         $stmt->execute();
-        return json_encode(['status' => 'success', 'message' => 'Post unliked']);
+        $stmt->close();
+        $stmt = $conn->prepare("SELECT * FROM likes WHERE postID = ?");
+        $stmt->bind_param("i", $postID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return json_encode(['status' => 'success', 'message' => 'Post unliked', 'likes' => $result->num_rows]);
     } else {
         $stmt = $conn->prepare("INSERT INTO likes (userID, postID) VALUES (?, ?)");
         $stmt->bind_param("ii", $userID, $postID);
         $stmt->execute();
-        return json_encode(['status' => 'success', 'message' => 'Post liked']);
+        $stmt->close();
+        $stmt = $conn->prepare("SELECT * FROM likes WHERE postID = ?");
+        $stmt->bind_param("i", $postID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return json_encode(['status' => 'success', 'message' => 'Post liked', 'likes' => $result->num_rows]);
     }
 }
 
