@@ -56,8 +56,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $postID = sanitizeInput($dataInput['postID']);
             $comment = sanitizeInput($dataInput['content']);
 
-            if (strlen($comment) < 2) {
+            if (strlen($comment) < 5) {
                 echo json_encode(['status' => 'error', 'message' => 'Comment is too short']);
+                exit;
+            } else if (strlen($comment) > 80) {
+                echo json_encode(['status' => 'error', 'message' => 'Comment is too long']);
                 exit;
             } else
                 echo createComment($id, $postID, $comment);

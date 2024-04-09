@@ -151,62 +151,8 @@
         }),
         success: function (data) {
           data = JSON.parse(data);
-          console.log(data);
-          
-          let commentsDiv = document.getElementById("Comments");
-    
-          let commentInput = document.getElementById("commentInput");
-          let commentInputButton = document.getElementById("commentInputButton");
-    
-          // Очистить текущие комментарии для данного поста
-          commentsDiv.innerHTML = "";
-    
-          // Добавить новые комментарии
-          data.data.forEach(comment => {
-            let commentDiv = document.createElement("div");
-            commentDiv.classList.add("comment", "flex", "flex-row", "gap-2", "w-full");
-            
-            let authorDiv = document.createElement("div");
-            authorDiv.classList.add("author");
-            
-            let authorName = document.createElement("p");
-            authorName.innerHTML = comment.nickname;
-    
-            let commentText = document.createElement("p");
-            commentText.innerHTML = comment.content;
-    
-            authorDiv.appendChild(authorName);
-            commentDiv.appendChild(authorDiv);
-            commentDiv.appendChild(commentText);
-            commentsDiv.appendChild(commentDiv);
-          });
-    
-          commentsDiv.appendChild(commentInput);
-          commentsDiv.appendChild(commentInputButton);
-        },
-        error: function (xhr, status, error) {
-          var responseData = JSON.parse(xhr.responseText);
-          showNotification(responseData.message, responseData.status);
-        }
-      });
-    }
-    
-     
 
-    function addComment(postID, content) {
-      postID = parseInt(postID);
-      $.ajax({
-        type: "POST",
-        url: "api/posts/posts.php",
-        contentType: "application/json",
-        data: JSON.stringify({
-          type: "createComment",
-          postID: postID,
-          content: content,
-        }),
-        success: function (data) {
-          data = JSON.parse(data);
-          console.log(data);
+          if (data.status == "success") {
           
           let commentsDiv = document.getElementById("Comments");
     
@@ -233,8 +179,7 @@
             commentDiv.appendChild(commentText);
             commentsDiv.appendChild(commentDiv);
           });
-    
-          // Добавить поле ввода комментария и кнопку отправки после добавления комментариев
+
           let addCommentDiv = document.createElement("div");
           addCommentDiv.classList.add("flex", "flex-row", "gap-2", "w-2/5", "bg-zinc-800", "p-2", "rounded-2xl", "mt-4");
           addCommentDiv.setAttribute("postID", postID);
@@ -254,6 +199,9 @@
           addCommentDiv.appendChild(newCommentInput);
           addCommentDiv.appendChild(newCommentInputButton);
           commentsDiv.appendChild(addCommentDiv);
+        } else {
+          showNotification(data.message, data.status);
+        }
         },
         error: function (xhr, status, error) {
           var responseData = JSON.parse(xhr.responseText);
