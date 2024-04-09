@@ -323,6 +323,28 @@
       });
     }
 
+    function likePost(postID) {
+      postID = parseInt(postID);
+      $.ajax({
+        type: "PATCH",
+        url: "api/posts/posts.php",
+        contentType: "application/json",
+        data: JSON.stringify({
+          type: "likePost",
+          postID: postID,
+        }),
+        success: function (data) {
+          data = JSON.parse(data);
+          posts[getIndex(postID)].likes_count = data.likes;
+          $("[postid=" + postID + "]").find("#likeCount").html(posts[getIndex(postID)].likes_count);
+        },
+        error: function (xhr, status, error) {
+          data = JSON.parse(xhr.responseText);
+          showNotification(data.message, data.status);
+        },
+      });
+    }
+
     function getIndex(postID) {
       let index = posts.some((el, i) => {
         if (el.id === postID) {
