@@ -24,7 +24,7 @@
         xmlns="http://www.w3.org/2000/svg">
         <path d="M4 12H20M12 4V20" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <input class="focus:outline-none bg-slate-200 text-zinc-800 w-full p-2" type="text" placeholder="Search" />
+      <input class="focus:outline-none bg-slate-200 text-zinc-800 w-full p-2" type="text" placeholder="Search"  id="searchBar"/>
       <button>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none">
           <path
@@ -79,7 +79,7 @@
             <p class="text-slate-200 mx-2">Description</p>
             <textarea placeholder="Add a description"
               class="focus:outline-none resize-none w-full bg-slate-200 text-zinc-800 rounded-2xl p-2"
-              id="postDescription"> 
+              id="postDescription">
               </textarea>
           </div>
         </div>
@@ -110,6 +110,12 @@
       });
     }
 
+    function getComments(postID) {
+      comments = [];
+      comments = JSON.parse(posts[getIndex(postID)].comments);
+      return comments;
+    }
+
     function showNotification(message, type) {
       const notificationContainer = document.getElementById(
         "notification-container"
@@ -129,6 +135,34 @@
       setTimeout(() => {
         notificationContainer.style.display = "none";
       }, 5000);
+    }
+
+    function addComment(postID, content) {
+      postID = parseInt(postID);
+      $.ajax({
+          type: "POST",
+          url: "api/posts/posts.php",
+          contentType: "application/json",
+          data: JSON.stringify({
+              type: "createComment",
+              postID: postID,
+              content: content,
+          }),
+          success: function (data) {
+            data = JSON.parse(data);
+            let commentsHTML = "";
+            console.log(data);
+            console.log(data.comments);
+            for (let i = 0; i < (data.comments).length; i++) {
+              commentsHTML += `<div><div>${data.comments[i].user_name}</div><div>${data.comments[i].content}</div></div>`;
+            }
+            $("[postid=" + postID + "]").find("#Comments").html(commentsHTML);
+        },
+        error: function (xhr, status, error) {
+            var responseData = JSON.parse(xhr.responseText);
+            showNotification(responseData.message, responseData.status);
+        }
+      });
     }
 
     function createPostForm() {
@@ -171,80 +205,122 @@
       };
     }
 
-    function showPosts(data) {
-      for (let i = 0; i < data.length; i++) {
-        postPlace = document.getElementById("Posts");
-        mainDiv = document.createElement("div");
-        mainDiv.setAttribute(
-          "class",
-          "flex flex-row justify-between gap-4 rounded-2xl p-2 bg-slate-200/10 w-full h-full sm:mx-auto backdrop-blur-xl shadow-inner shadow-slate-200/50 cursor-pointer"
-        );
-        mainDiv.setAttribute("id", data[i].id);
-        //mainDiv.setAttribute("onclick", "openPost()");
-        postPlace.appendChild(mainDiv);
-        imgDiv = document.createElement("div");
-        imgDiv.setAttribute("class", "w-1/2");
-        mainDiv.appendChild(imgDiv);
-        image = document.createElement("img");
-        image.setAttribute("class", "w-full rounded-2xl");
-        image.setAttribute("src", "/storage/imgs/" + data[i].picPath);
+    function showPosts(postsData) {
+      let postsContainer = document.getElementById("Posts");
+      postsContainer.innerHTML = "";
+
+      postsData.forEach(function (post, index) {
+        let postDiv = document.createElement("div");
+        postDiv.classList.add('flex', 'flex-row', 'justify-between', 'gap-4', 'rounded-2xl', 'p-2', 'bg-slate-200/10', 'w-full', 'h-full', 'sm:mx-auto', 'backdrop-blur-xl', 'shadow-inner', 'shadow-slate-200/50');
+        postDiv.setAttribute("id", post.id);
+
+        let imgDiv = document.createElement("div");
+        imgDiv.classList.add('w-1/2');
+        postDiv.appendChild(imgDiv);
+
+        let image = document.createElement("img");
+        image.classList.add('w-full', 'rounded-2xl');
+        image.setAttribute("src", "/storage/imgs/" + post.picPath);
         imgDiv.appendChild(image);
-        textDiv = document.createElement("div");
-        textDiv.setAttribute("class", "w-1/2");
-        mainDiv.appendChild(textDiv);
-        profileDiv = document.createElement("div");
-        profileDiv.setAttribute("class", "flex flex-row gap-2 w-full");
-        profileDiv.setAttribute("onclick", "openProfile()");
+
+        let textDiv = document.createElement("div");
+        textDiv.classList.add('w-1/2');
+        postDiv.appendChild(textDiv);
+
+        let profileDiv = document.createElement("div");
+        profileDiv.classList.add('flex', 'flex-row', 'gap-2', 'w-full');
         textDiv.appendChild(profileDiv);
-        profilePic = document.createElement("img");
-        profilePic.setAttribute(
-          "class",
-          "w-8 h-8 sm:w-12 sm:h-12 rounded-full"
-        );
-        profilePic.setAttribute(
-          "src",
-          "/storage/avatars/" + data[i].avatarPath + "?v=" + Date.now()
-        );
+
+        let profilePic = document.createElement("img");
+        profilePic.classList.add('w-8', 'h-8', 'sm:w-12', 'sm:h-12', 'rounded-full');
+        profilePic.setAttribute("src", "/storage/avatars/" + post.avatarPath + "?v=" + Date.now());
         profileDiv.appendChild(profilePic);
-        profileName = document.createElement("p");
-        profileName.setAttribute(
-          "class",
-          "flex flex-row items-center text-black font-bold self-center text-sm md:text-md"
-        );
-        profileName.setAttribute("userID", data[i].authorID);
-        profileName.innerHTML = data[i].nickname;
+
+        let profileName = document.createElement("p");
+        profileName.classList.add('flex', 'flex-row', 'items-center', 'text-slate-200', 'font-bold', 'self-center', 'text-sm', 'md:text-md');
+        profileName.setAttribute("userID", post.authorID);
+        profileName.innerHTML = post.nickname;
         profileDiv.appendChild(profileName);
-        title = document.createElement("p");
-        title.setAttribute(
-          "class",
-          "text-black font-bold self-center text-sm md:text-md"
-        );
-        title.innerHTML = data[i].title;
+
+        let title = document.createElement("p");
+        title.classList.add('text-slate-200', 'font-bold', 'self-center', 'text-sm', "mt-2", 'md:text-md');
+        title.innerHTML = post.title;
         textDiv.appendChild(title);
-        likes = document.createElement("div");
-        likes.setAttribute("class", "flex flex-row items-center");
+
+        let likes = document.createElement("div");
+        likes.classList.add('flex', 'flex-row', "mt-2", 'items-center');
         likes.setAttribute("id", "Likes");
         textDiv.appendChild(likes);
-        likeButton = document.createElement("button");
-        likeButton.setAttribute(
-          "class",
-          "flex flex-row items-center bg-white hover:bg-red-200 rounded-2xl border-2 p-1"
-        );
-        likeButton.setAttribute("postID", data[i].id);
-        likeButton.setAttribute(
-          "onclick",
-          "likePost(this.getAttribute('postID'))"
-        );
+
+        let likeButton = document.createElement("button");
+        likeButton.classList.add('flex', 'flex-row', 'items-center', 'bg-white', 'hover:bg-red-200', 'rounded-2xl', 'border-2', 'p-1');
+        likeButton.setAttribute("postID", post.id);
+        likeButton.setAttribute("onclick", "likePost(this.getAttribute('postID'))");
         likes.appendChild(likeButton);
-        likeSVG = document.createElement("svg");
-        likeSVG.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 1024 1024" class="h-8 w-8 icon" version="1.1"><path d="M933.387 517.868C950.274 477.276 960 431.509 960 382.887c0-165.301-109.993-299.305-245.677-299.305-83.964 0-158.011 51.39-202.323 129.684-44.31-78.295-118.357-129.685-202.321-129.685C173.994 83.581 64 217.586 64 382.887c0 57.701 13.632 111.398 36.851 157.102 56.694 135.957 196.112 269.389 414.1 400.428 149.872-95.245 273.613-208.473 368.923-341.271 14.435-16.802 49.513-81.278 49.513-81.278z" fill="#FF3B30"/><path d="M484 254.385c8.327-14.713 17.706-28.474 28-41.12-57.022-96.69-134.136-129.682-202.321-129.682-9.409 0-18.659 0.786-27.794 2.039C354.075 95.7 444.727 184.995 484 254.385zM714.323 83.583c-9.547 0-18.946 0.75-28.206 2.039C808.697 102.462 904 229.049 904 382.888c0 48.623-9.724 94.386-26.613 134.982 0 0-35.08 64.473-49.515 81.277-89.475 124.668-204.315 231.88-342.002 323.366 9.592 5.971 19.163 11.942 29.079 17.905 149.872-95.244 273.613-208.474 368.923-341.271 14.434-16.805 49.514-81.277 49.514-81.277C950.276 477.274 960 431.511 960 382.888c0-165.302-109.993-299.305-245.677-299.305z" fill=""/></svg>';
-        likeCount = document.createElement("p");
+
+        let likeSVG = document.createElement("svg");
+        likeSVG.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" class="h-8 w-8 icon" version="1.1"><path d="M933.387 517.868C950.274 477.276 960 431.509 960 382.887c0-165.301-109.993-299.305-245.677-299.305-83.964 0-158.011 51.39-202.323 129.684-44.31-78.295-118.357-129.685-202.321-129.685C173.994 83.581 64 217.586 64 382.887c0 57.701 13.632 111.398 36.851 157.102 56.694 135.957 196.112 269.389 414.1 400.428 149.872-95.245 273.613-208.473 368.923-341.271 14.435-16.802 49.513-81.278 49.513-81.278z" fill="#FF3B30"/><path d="M484 254.385c8.327-14.713 17.706-28.474 28-41.12-57.022-96.69-134.136-129.682-202.321-129.682-9.409 0-18.659 0.786-27.794 2.039C354.075 95.7 444.727 184.995 484 254.385zM714.323 83.583c-9.547 0-18.946 0.75-28.206 2.039C808.697 102.462 904 229.049 904 382.888c0 48.623-9.724 94.386-26.613 134.982 0 0-35.08 64.473-49.515 81.277-89.475 124.668-204.315 231.88-342.002 323.366 9.592 5.971 19.163 11.942 29.079 17.905 149.872-95.244 273.613-208.474 368.923-341.271 14.434-16.805 49.514-81.277 49.514-81.277C950.276 477.274 960 431.511 960 382.888c0-165.302-109.993-299.305-245.677-299.305z" fill=""/></svg>';
+
+        let likeCount = document.createElement("p");
         likeCount.setAttribute("id", "likeCount");
-        likeCount.innerHTML = data[i].likes_count;
+        likeCount.innerHTML = post.likes_count;
+
         likeButton.appendChild(likeSVG);
         likeButton.appendChild(likeCount);
-      }
+
+        let commentsDiv = document.createElement("div");
+        commentsDiv.classList.add("bg-slate-200", "p-2", "rounded-2xl", "w-full", "text-zinc-800", "mt-8");
+        commentsDiv.setAttribute("id", "Comments");
+
+        let addCommentDiv = document.createElement("div");
+        addCommentDiv.classList.add("flex", "flex-row", "gap-2", "w-2/5", "bg-zinc-800", "p-2", "rounded-2xl", "mt-4");
+        addCommentDiv.setAttribute("postID", post.id);
+
+        let commentInput = document.createElement("input");
+        commentInput.setAttribute("type", "text");
+        commentInput.setAttribute("id", "commentInput");
+        commentInput.setAttribute("class", "rounded-2xl px-2");
+        commentInput.setAttribute("placeholder", "Add a comment");
+        
+        commentInputButton = document.createElement("button");
+        commentInputButton.setAttribute("id", "commentInputButton");
+        commentInputButton.setAttribute("Class", "text-slate-200");
+        commentInputButton.setAttribute("onclick", "addComment(this.parentElement.getAttribute('postID'), this.previousElementSibling.value)");
+        commentInputButton.innerHTML = "-->";
+
+        addCommentDiv.appendChild(commentInput);
+        addCommentDiv.appendChild(commentInputButton);
+
+        if (getComments(post.id) != null) {
+          comments.forEach((comment) => {
+            let commentDiv = document.createElement("div");
+            
+
+            let authorDiv = document.createElement("div");
+            let authorName = document.createElement("p");
+            let commentText = document.createElement("p");
+
+            commentDiv.classList.add("flex", "flex-row", "gap-2", "w-full");
+
+            authorName.innerHTML = comment.user_name;
+            commentText.innerHTML = comment.content;
+
+            authorDiv.appendChild(authorName);
+            commentDiv.appendChild(authorDiv);
+            commentDiv.appendChild(commentText);
+            commentsDiv.appendChild(commentDiv);
+            commentsDiv.appendChild(addCommentDiv);
+            
+          })
+        } else {
+          commentsDiv.innerHTML = "No comments yet. Be the first to comment!";
+          commentsDiv.appendChild(addCommentDiv);
+        }
+        commentsDiv.setAttribute("id", "Comments");
+        textDiv.appendChild(commentsDiv);
+
+        postsContainer.appendChild(postDiv);
+      });
     }
 
     function getIndex(postID) {
@@ -256,28 +332,6 @@
         ? posts.findIndex((el) => el.id === postID)
         : -1;
       return index;
-    }
-
-    function likePost(postID) {
-      postID = parseInt(postID);
-      $.ajax({
-        type: "PATCH",
-        url: "api/posts/posts.php",
-        contentType: "application/json",
-        data: JSON.stringify({
-          type: "likePost",
-          postID: postID,
-        }),
-        success: function (data) {
-          data = JSON.parse(data);
-          posts[getIndex(postID)].likes_count = data.likes;
-          $("[postid=" + postID + "]").find("#likeCount").html(posts[getIndex(postID)].likes_count);
-        },
-        error: function (xhr, status, error) {
-          data = JSON.parse(xhr.responseText);
-          showNotification(data.message, data.status);
-        },
-      });
     }
 
     function getUserData() {
@@ -301,6 +355,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("searchBar").value = "";
       getUserData();
       getPosts(1);
     });

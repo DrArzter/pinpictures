@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
         exit;
     }
+
     $payload = JWT::decode($token, new Key($secretKey, 'HS256'));
     $id = sanitizeInput($payload->sub);
     $dataInput = json_decode(file_get_contents('php://input'), true);
@@ -51,9 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else if ($type === 'createComment') {
         if (checkToken($id)) {
-            $postID = sanitizeInput($_POST['postID']);
-            $comment = sanitizeInput($_POST['comment']);
-            echo createComment($id, $postID, $comment);
+            $data = json_decode(file_get_contents('php://input'), true);
+            $postID = sanitizeInput($dataInput['postID']);
+            $comment = sanitizeInput($dataInput['content']);
+
+            if (strlen($comment) < 2) {
+                echo json_encode(['status' => 'error', 'message' => 'Comment is too short']);
+                exit;
+            } else
+                echo createComment($id, $postID, $comment);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
             exit;
@@ -108,14 +115,16 @@ function createComment($userID, $postID, $comment)
 {
     global $secretKey, $dbip, $dbuser, $dbpassword, $dbname;
     $conn = new mysqli($dbip, $dbuser, $dbpassword, $dbname);
-    $stmt = $conn->prepare("INSERT INTO comments (userID, postID, comment) VALUES (?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO comments (userID, postID, content) VALUES (?, ?, ?)");
     $stmt->bind_param("iis", $userID, $postID, $comment);
     $stmt->execute();
     if ($stmt->affected_rows > 0) {
-        $stmt->close();
-        return json_encode(['status' => 'success', 'message' => 'Comment added successfully']);
+        $stmt = $conn->prepare("SELECT id, (SELECT nickname FROM users WHERE id = comments.userID) AS nickname, postID, content, created_at FROM comments WHERE postID = ?");
+        $stmt->bind_param("i", $postID);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return json_encode(['status' => 'success', 'message' => 'Comment added successfully', 'data' => $result->fetch_all(MYSQLI_ASSOC)]);
     } else {
-        $stmt->close();
         return json_encode(['status' => 'error', 'message' => 'Failed to add comment']);
     }
 }
@@ -217,18 +226,21 @@ function getPosts($page, $id)
                 SELECT JSON_ARRAYAGG(
                     JSON_OBJECT(
                         'id', c.comment_id,
-                        'user_name', u.nickname,
+                        'user_name', (
+                            SELECT u.nickname 
+                            FROM users u 
+                            WHERE u.id = c.userID
+                        ),
                         'content', c.content,
                         'created_at', c.created_at
                     )
                 ) FROM (
-                    SELECT c.id AS comment_id, c.content, c.created_at, u.nickname 
+                    SELECT c.id AS comment_id, c.content, c.created_at, c.userID 
                     FROM comments c 
-                    LEFT JOIN users u ON c.userID = u.id 
                     WHERE c.postID = p.id 
                     ORDER BY c.created_at DESC
                 ) AS c
-            ) AS comments            
+            ) AS comments
         FROM 
             posts p 
             JOIN users u ON p.authorID = u.id 
