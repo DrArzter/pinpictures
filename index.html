@@ -154,10 +154,11 @@
 
           if (data.status == "success") {
           
-          let commentsDiv = document.getElementById("Comments");
+          let commentsDiv = document.querySelector(`[id="${postID}"]`).querySelector(`#Comments`);
     
-          let commentInput = document.getElementById("commentInput");
-          let commentInputButton = document.getElementById("commentInputButton");
+          let commentInput = document.querySelector(`[postid="${postID}"]`).querySelector(`#commentInput`);
+          let commentInputButton = document.querySelector(`[postid="${postID}"]`).querySelector(`#commentInputButton`);
+
     
           commentsDiv.innerHTML = "";
     
@@ -193,7 +194,7 @@
           let newCommentInputButton = document.createElement("button");
           newCommentInputButton.setAttribute("id", "commentInputButton");
           newCommentInputButton.setAttribute("class", "text-slate-200");
-          newCommentInputButton.setAttribute("onclick", "addComment(this.parentElement.getAttribute('postID'), this.previousElementSibling.value)");
+          newCommentInputButton.setAttribute("onclick", "addComment(this.parentElement.getAttribute('postid'), this.parentElement.querySelector('#commentInput').value)");
           newCommentInputButton.innerHTML = "-->";
     
           addCommentDiv.appendChild(newCommentInput);
