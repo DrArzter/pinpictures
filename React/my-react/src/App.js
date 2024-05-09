@@ -346,10 +346,26 @@ function Main({ posts, addToCart, setPosts }) {
 }
 
 function Footer() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    function handleScroll() {
+      const isBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight;
+      setIsVisible(isBottom);
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
-    <footer className="bg-gray-800 text-white py-4">
-      <div className="container mx-auto text-center">
-        <p>&copy; 2024 <a href="https://github.com/drarzter">my</a> React App. No rights reserved.</p>
+    <footer className={`bg-gray-800 text-white py-4 text-center w-full fixed bottom-0 transition-all duration-300 ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div>
+        <div>
+          <a href="https://github.com/DrArzter" className="text-white hover:text-gray-400">GitHub</a>
+        </div>
       </div>
     </footer>
   );
