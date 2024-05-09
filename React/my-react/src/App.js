@@ -217,7 +217,7 @@ function Main({ posts, addToCart, setPosts }) {
   };
 
   return (
-    <div className="flex flex-col items-center h-screen bg-gray-600 text-gray-100 mx-auto p-4" onClick={handleDocumentClick}>
+    <div className="flex flex-col items-center min-h-screen bg-gray-600 text-gray-100 mx-auto p-4" onClick={handleDocumentClick}>
       <div className="w-full lg:w-1/2 bg-gray-800 p-6 rounded-lg">
         <div>
           <h1 className="text-2xl font-bold mb-4">Main Page</h1>
