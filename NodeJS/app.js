@@ -20,7 +20,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   port: 3306,
   user: 'root',
-  password: 'password',
+  password: 'PrinzEugen1410@',
   database: 'my_db'
 });
 
@@ -48,18 +48,18 @@ app.post('/api/formdata/posts', uploadPost.single('image'), (req, res) => {
   const formData = req.body;
   const image = req.file;
   const token = req.headers.authorization;
-  
+
   if (!token) {
     return res.status(401).json({ status: 'error', message: 'Unauthorized' });
   }
-  
+
   try {
     const { id } = jwt.verify(token, jwtSecretKey);
     formData.authorid = id;
   } catch (error) {
     return res.status(401).json({ status: 'error', message: 'Unauthorized' });
   }
-  
+
   if (formData && image) {
     createPost(req, res, formData.name, formData.description, formData.cost, formData.authorid, image.filename);
   } else {
@@ -75,7 +75,7 @@ app.post('/api/posts', (req, res) => {
   } else if (type === 'delete') {
     deletePost(req, res, data.id);
   } else if (type === 'checkout') {
-    checkoutPost(req, res, data);    
+    checkoutPost(req, res, data);
   }
 });
 
@@ -90,7 +90,34 @@ app.patch('/api/posts/', (req, res) => {
 });
 
 app.get('/api/posts/', (req, res) => {
-  const sql = 'SELECT p.id, p.name, p.description, p.cost, p.rating, p.picpath, u.name AS author FROM posts p JOIN users u ON p.authorid = u.id ORDER BY p.id DESC';
+  const sql = `
+    SELECT 
+        p.id, 
+        p.name, 
+        p.description, 
+        p.cost, 
+        p.rating, 
+        p.picpath, 
+        u.name AS author, 
+        (
+            SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', c.id,
+                    'author', u.name,
+                    'content', c.content
+                )
+            ) 
+            FROM comments c 
+            JOIN users u ON c.authorid = u.id
+            WHERE c.postid = p.id
+        ) AS comments
+    FROM 
+        posts p 
+    JOIN 
+        users u ON p.authorid = u.id 
+    ORDER BY 
+        p.id DESC;`;
+        
   connection.query(sql, (err, result) => {
     if (err) {
       console.error('Error selecting data from MySQL database: ' + err.stack);
@@ -137,7 +164,7 @@ function checkoutPost(req, res, data) {
   console.log(data);
   const ids = data.items.map(item => item.id);
   const sql = 'DELETE FROM posts WHERE id = ?';
-  
+
   ids.forEach(id => {
     connection.query(sql, [id], (err, result) => {
       if (err) {
@@ -179,10 +206,10 @@ function createPost(req, res, name, description, cost, authorId) {
       console.error('Error inserting data into MySQL database: ' + err.stack);
       return res.status(500).json({ status: 'error', message: 'Failed to create post' });
     }
-    
+
     // Получаем идентификатор созданного поста
     const postId = result.insertId;
-    
+
     // Определяем путь к файлу
     const file = req.file;
     if (!file) {
