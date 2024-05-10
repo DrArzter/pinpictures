@@ -79,7 +79,9 @@ function Main({ posts, addToCart, setPosts }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Добавили состояние для открытия/закрытия меню
+  const [commentValues, setCommentValues] = useState({});
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const commentRefs = useRef([]);
 
   const dropdownRef = useRef(null); // Создаем реф для меню
 
@@ -95,6 +97,12 @@ function Main({ posts, addToCart, setPosts }) {
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsDropdownOpen(false);
+    }
+  };
+
+  const scrollToBottom = (postId) => {
+    if (commentRefs.current[postId]) {
+      commentRefs.current[postId].scrollIntoView({ behavior: "smooth" });
     }
   };
 
@@ -190,19 +198,21 @@ function Main({ posts, addToCart, setPosts }) {
     axios.post('http://localhost:3000/api/posts', {
       type: "addComment",
       id: postId,
-      content: "comment"
+      content: comment
     }, {
       headers: {
         'Authorization': localStorage.getItem('token'),
       }
     })
-    .then(response => {
-      getPosts();
-    })
-    .catch(error => {
-      console.error('Failed to add comment', error);
-    });
-  };  
+      .then(response => {
+        getPosts();
+        setCommentValues({});
+        scrollToBottom(postId);
+      })
+      .catch(error => {
+        console.error('Failed to add comment', error);
+      });
+  };
   const addPost = async (name, description, cost, image) => {
     const formData = new FormData();
     formData.append('type', 'create');
@@ -319,6 +329,7 @@ function Main({ posts, addToCart, setPosts }) {
       <div className="w-full lg:w-1/2 bg-gray-800 p-6 rounded-lg mt-4 flex flex-col justify-between gap-8">
         {filteredPosts.map(post => (
           <div key={post.id}>
+            <div ref={ref => (commentRefs.current[post.id] = ref)} />
             <div className="bg-gray-700 p-6 rounded-lg relative" onClick={(event) => stopPropagation(event)}>
               <div className="">
                 {post.picpath && <img src={`http://localhost:3000/${post.picpath}`} alt="Post Image" className="mb-4 z-[999] hover:transform hover:scale-110 transition duration-500 rounded-2xl" style={{ minWidth: '100%', minHeight: '100%' }} />}
@@ -351,9 +362,23 @@ function Main({ posts, addToCart, setPosts }) {
                       </div>
                     ))}
                     <br />
-                    <div className="flex flex-row items-center bg-gray-700 rounded-lg border border-gray-700">
-                      <input className="shadow appearance-none bg-gray-700 border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="Add a comment"></input>
-                      <svg className="w-7 cursor-pointer ml-2 hover:bg-gray-100 rounded-lg transition duration-500" onClick={() => addComment(post.id)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="flex flex-row items-center bg-gray-700 rounded-lg border border-gray-700" key={post.id}>
+                      <input
+                        className="shadow appearance-none w-10/12 bg-gray-700 border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text"
+                        value={commentValues[post.id] || ''}
+                        onChange={(e) => setCommentValues({ ...commentValues, [post.id]: e.target.value })}
+                        placeholder="Add a comment"
+                      />
+
+                      <svg
+                        className="w-7 cursor-pointer ml-2 hover:bg-gray-100 rounded-lg transition duration-500"
+                        onClick={() => addComment(post.id, commentValues[post.id])}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+
                         <path d="M21 7.74L17.26 4H6.74L3 7.74V17.24L6.74 21H17.26L21 17.24V7.74ZM17.15 9.84L15.15 11.84L12 8.69L8.84 11.84L6.84 9.84L9.99 6.69L12 4.68L13.99 6.69L17.15 9.84ZM18.54 10.95L17.46 12.04L15.96 10.54L17.05 9.46L18.54 10.95ZM5.46 16.55L6.54 15.46L8.04 16.96L6.95 18.05L5.46 16.55ZM6 12L6.84 11.16L15.84 20.16L15 21L6 12Z" fill="#2196F3" />
                       </svg>
                     </div>
