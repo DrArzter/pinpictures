@@ -76,6 +76,19 @@ app.post('/api/posts', (req, res) => {
     deletePost(req, res, data.id);
   } else if (type === 'checkout') {
     checkoutPost(req, res, data);
+  } else if (type === 'addComment') {
+    const token = req.headers.authorization;
+    console.log(token);
+    if (!token) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    } else {
+      try {
+        const { id } = jwt.verify(token, jwtSecretKey);
+        createComment(req, res, data.id, id, data.content);
+      } catch (error) {
+        return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+      }
+    }    
   }
 });
 
@@ -194,6 +207,17 @@ function updateRating(req, res, id, rating) {
       }
       res.status(200).json({ status: 'success', message: 'Post rating updated successfully', data: postResult });
     });
+  });
+}
+
+function createComment(req, res, postId, authorId, content) {
+  const sql = 'INSERT INTO comments (authorid, postid, content) VALUES (?, ?, ?)';
+  connection.query(sql, [authorId, postId, content], (err, result) => {
+    if (err) {
+      console.error('Error inserting data into MySQL database: ' + err.stack);
+      return res.status(500).json({ status: 'error', message: 'Failed to create comment' });
+    }
+    res.status(200).json({ status: 'success', message: 'Comment created successfully' });
   });
 }
 

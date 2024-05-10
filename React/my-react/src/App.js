@@ -190,16 +190,19 @@ function Main({ posts, addToCart, setPosts }) {
     axios.post('http://localhost:3000/api/posts', {
       type: "addComment",
       id: postId,
-      comment: comment
+      content: "comment"
+    }, {
+      headers: {
+        'Authorization': localStorage.getItem('token'),
+      }
     })
-      .then(response => {
-        getPosts();
-      })
-      .catch(error => {
-        console.error('Failed to add comment', error);
-      });
-  };
-
+    .then(response => {
+      getPosts();
+    })
+    .catch(error => {
+      console.error('Failed to add comment', error);
+    });
+  };  
   const addPost = async (name, description, cost, image) => {
     const formData = new FormData();
     formData.append('type', 'create');
@@ -340,7 +343,7 @@ function Main({ posts, addToCart, setPosts }) {
                     <StarRating rating={post.rating} postId={post.id} setPosts={setPosts} />
                     <p className="text-gray-500">Posted by: <span className="cursor-pointer">{post.author}</span></p>
                   </div>
-                  <div className="ml-4 w-full">
+                  <div className="ml-4 w-full max-h-40 overflow-y-auto">
                     {post.comments && JSON.parse(post.comments).map(comment => (
                       <div key={comment.id} className="bg-gray-700 rounded-lg">
                         <p className="text-gray-300">{comment.content}</p>
